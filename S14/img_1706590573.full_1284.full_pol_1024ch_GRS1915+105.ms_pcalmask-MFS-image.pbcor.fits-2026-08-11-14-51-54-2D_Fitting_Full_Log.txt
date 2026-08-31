@@ -1,0 +1,45 @@
+Image: img_1706590573.full_1284.full_pol_1024ch_GRS1915+105.ms_pcalmask-MFS-image.pbcor.fits
+Region: 1
+ellipse[[5120.685547pix, 5093.724121pix], [17.803793pix, 16.735518pix], 0.000000deg]
+ellipse(wcs:FK5)[[19:15:11.5330010077, 10:56:44.6599901377], [10.3261999130", 9.7066001511"], 0.000000deg]
+
+Gaussian fitting with 2 component(s)
+summary from method 'trust-region/levenberg-marquardt':
+number of iterations = 20
+function evaluations = 160
+Jacobian evaluations = 0
+reason for stopping  = small step size
+initial |f(x)|       = 9.536598513829e-02
+final |f(x)|         = 2.982703402746e-02
+initial cost         = 9.094671121397e-03
+final cost           = 8.896519588752e-04
+residual variance    = 9.555874961065e-07
+final cond(J)        = 5.612389850543e+02
+
+Component #1:
+Center X        = 19:15:11.5644665495 ± 1.653755973683e-2 (s)
+                = 5.119886587223e+3 ± 4.276955104353e-1 (px)
+Center Y        = 10:56:43.8469888043 ± 1.742851216205e-1 (arcsec)
+                = 5.092322394537e+3 ± 3.004915890009e-1 (px)
+Amplitude       = 2.683734008852e-2 ± 1.807378570267e-3 (Jy/beam)
+FWHM Major Axis = 6.696626765000e+0 (arcsec) (fixed)
+                = 1.154590821552e+1 (px) (fixed)
+FWHM Minor Axis = 2.748231336000e+0 (arcsec) (fixed)
+                = 4.738329889655e+0 (px) (fixed)
+P.A.            = 5.551389783827e+1 (deg) (fixed)
+Integrated flux = 2.683733976425e-2 ± 3.544994430815e-3 (Jy)
+
+Component #2:
+Center X        = 19:15:11.4958064828 ± 1.464959888955e-2 (s)
+                = 5.121629972208e+3 ± 3.788689367986e-1 (px)
+Center Y        = 10:56:46.0470243025 ± 1.543883840655e-1 (arcsec)
+                = 5.096115559898e+3 ± 2.661868690785e-1 (px)
+Amplitude       = 3.029599091674e-2 ± 1.807378570267e-3 (Jy/beam)
+FWHM Major Axis = 6.696626765000e+0 (arcsec) (fixed)
+                = 1.154590821552e+1 (px) (fixed)
+FWHM Minor Axis = 2.748231336000e+0 (arcsec) (fixed)
+                = 4.738329889655e+0 (px) (fixed)
+P.A.            = 5.551389783827e+1 (deg) (fixed)
+Integrated flux = 3.029599055068e-2 ± 3.544994430815e-3 (Jy)
+
+Background      = 3.051460448045e-5 (Jy/beam) (fixed)

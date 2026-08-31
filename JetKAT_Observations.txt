@@ -1,0 +1,98 @@
+﻿JetKAT Observations Log
+Data log for the JetKAT project observation blocks, tracking S-band and L-band configurations and alignment dates.
+Location of the S-band blocks on IDIA (Sara’s area)
+	idia/projects/jetKAT/sem/Split_blocks_S
+	Location of the L-band block (from X-KAT) on IDIA (Sara’s area)
+	idia/projects/xkat/sem/GRS1915/MeerKAT/Split_blocks_L
+	
+
+Legend / Column Definition
+• S-band Block: ID and execution date/time.
+• L-band Block: ID (clickable archive link) and execution date.
+Block
+	S-band Time (UTC)
+	S-band Block ID
+	L-band Block ID
+	L-band Date
+	Block 1
+	2025-01-11 06:03:36
+	1736575328
+	1737778693
+	2025-01-25
+	Block 2
+	2025-02-02 06:13:52
+	1738471273
+	1739157616
+	2025-02-10
+	Block 3
+	2025-03-02 02:44:41
+	1740883517
+	1742173691
+	2025-03-17
+	Block 4
+	2025-03-24 01:35:33
+	1742780174
+	1743297376
+	2025-03-30
+	Block 5
+	2025-04-26 23:09:36
+	1745709012
+	1745797469
+	2025-04-27
+	Block 6
+	2025-06-10 20:15:37
+	1749586570
+	1749501064
+	2025-06-09
+	Block 7
+	2025-06-28 19:00:35
+	1751137270
+	1751822175
+	2025-07-06
+	Block 8
+	2025-07-26 17:12:41
+	1753549996
+	1754237460
+	2025-08-03
+	Block 9
+	2025-08-29 14:59:34
+	1756479610
+	1756646775
+	2025-08-31
+	Block 10
+	2025-10-04 12:32:38
+	1759581193
+	1759663092
+	2025-10-05
+	Block 11
+	2025-10-25 11:33:34.255
+	1761391938
+	1760871974
+	2025-10-19
+	Block 12
+	2025-12-02 08:45:24.052
+	1764664923
+	1765527668
+	2025-12-12
+	
+
+
+
+
+
+
+
+
+
+* Extra S-band blocks: 
+location : /idia/projects/xkat/sem/GRS1915/MeerKAT/Split_blocks_S
+
+
+Block 13 1675587197 [2023-02-05T08:58:10.9] (2.8436 GHz)
+Block 14 1706590573 [2024-01-30T05:17:59.9] (2.6249 GHz)
+Block 15 1718044512 - simultaneous with 1717877016 [2024-06-10]
+Block 16 1725115877 - simultaneous with 1725197055 [2024-08-31 T17:01:42.9]
+Block 17 1780867979 - simultaneous with 1781205673 [2026-06-07 T21:55:17.2] (2.6250 GHz)
+
+
+        X

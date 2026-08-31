@@ -1,0 +1,28 @@
+Component #1:
+Center X        = 19:15:11.5518698180 ± 0.000800 (s)
+Center Y        = 10:56:44.5683925242 ± 0.012507 (arcsec)
+Amplitude       = 0.049304 ± 0.000316 (Jy/beam)
+FWHM Major Axis = 4.515298 (arcsec) (fixed)
+FWHM Minor Axis = 2.473684 (arcsec) (fixed)
+P.A.            = 43.596527 (deg) (fixed)
+Integrated flux = 0.049304 ± 0.000580 (Jy)
+
+Component #2:
+Center X        = 19:15:11.7010870762 ± 0.018667 (s)
+Center Y        = 10:56:42.5272943850 ± 0.291693 (arcsec)
+Amplitude       = 0.002114 ± 0.000316 (Jy/beam)
+FWHM Major Axis = 4.515298 (arcsec) (fixed)
+FWHM Minor Axis = 2.473684 (arcsec) (fixed)
+P.A.            = 43.596527 (deg) (fixed)
+Integrated flux = 0.002114 ± 0.000580 (Jy)
+
+Component #3:
+Center X        = 19:15:11.4360248947 ± 0.028271 (s)
+Center Y        = 10:56:46.0228958024 ± 0.441761 (arcsec)
+Amplitude       = 0.001396 ± 0.000316 (Jy/beam)
+FWHM Major Axis = 4.515298 (arcsec) (fixed)
+FWHM Minor Axis = 2.473684 (arcsec) (fixed)
+P.A.            = 43.596527 (deg) (fixed)
+Integrated flux = 0.001396 ± 0.000580 (Jy)
+
+Background      = 0.000014 (Jy/beam) (fixed)

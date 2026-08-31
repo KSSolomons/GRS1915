@@ -1,0 +1,58 @@
+Image: img_1759581193_sdp_l0_1024ch_GRS1915+105.ms_pcalmask-MFS-image.pbcor.fits
+Region: 1
+ellipse[[5120.794922pix, 5089.520020pix], [20.652399pix, 19.413200pix], 0.000000deg]
+ellipse(wcs:FK5)[[19:15:11.5330116174, 10:56:44.6600096695], [10.3261995316", 9.7066001892"], 0.000000deg]
+
+Gaussian fitting with 3 component(s)
+summary from method 'trust-region/levenberg-marquardt':
+number of iterations = 28
+function evaluations = 304
+Jacobian evaluations = 0
+reason for stopping  = small step size
+initial |f(x)|       = 1.547762304144e-03
+final |f(x)|         = 5.714997491714e-04
+initial cost         = 2.395568150130e-06
+final cost           = 3.266119633030e-07
+residual variance    = 2.608721751621e-10
+final cond(J)        = 1.597143136049e+05
+
+Component #1:
+Center X        = 19:15:11.5267695101 ± 6.263295068149e-3 (s)
+                = 5.120978778502e+3 ± 1.878988520445e-1 (px)
+Center Y        = 10:56:44.4366404872 ± 9.683281093383e-2 (arcsec)
+                = 5.089073281244e+3 ± 1.936656218677e-1 (px)
+Amplitude       = 6.928959882465e-4 ± 2.439709530386e-5 (Jy/beam)
+FWHM Major Axis = 5.759000000000e+0 (arcsec) (fixed)
+                = 1.151800000000e+1 (px) (fixed)
+FWHM Minor Axis = 2.419000000000e+0 (arcsec) (fixed)
+                = 4.838000000000e+0 (px) (fixed)
+P.A.            = 4.407847070884e+1 (deg) (fixed)
+Integrated flux = 6.928864397094e-4 ± 4.756319269691e-5 (Jy)
+
+Component #2:
+Center X        = 19:15:11.3940485050 ± 3.021220287878e-2 (s)
+                = 5.124887960977e+3 ± 9.063660863633e-1 (px)
+Center Y        = 10:56:47.1582234135 ± 4.670916023313e-1 (arcsec)
+                = 5.094516452462e+3 ± 9.341832046625e-1 (px)
+Amplitude       = 1.436443427623e-4 ± 2.439709530386e-5 (Jy/beam)
+FWHM Major Axis = 5.759000000000e+0 (arcsec) (fixed)
+                = 1.151800000000e+1 (px) (fixed)
+FWHM Minor Axis = 2.419000000000e+0 (arcsec) (fixed)
+                = 4.838000000000e+0 (px) (fixed)
+P.A.            = 4.407847070884e+1 (deg) (fixed)
+Integrated flux = 1.436423632541e-4 ± 4.756319269691e-5 (Jy)
+
+Component #3:
+Center X        = 19:15:11.6999695306 ± 4.052737746860e-2 (s)
+                = 5.115877294977e+3 ± 1.215821324058e+0 (px)
+Center Y        = 10:56:41.7553827379 ± 6.265679386586e-1 (arcsec)
+                = 5.083710769524e+3 ± 1.253135877317e+0 (px)
+Amplitude       = 1.070834654744e-4 ± 2.439709530386e-5 (Jy/beam)
+FWHM Major Axis = 5.759000000000e+0 (arcsec) (fixed)
+                = 1.151800000000e+1 (px) (fixed)
+FWHM Minor Axis = 2.419000000000e+0 (arcsec) (fixed)
+                = 4.838000000000e+0 (px) (fixed)
+P.A.            = 4.407847070884e+1 (deg) (fixed)
+Integrated flux = 1.070819897977e-4 ± 4.756319269691e-5 (Jy)
+
+Background      = 1.422778753038e-5 (Jy/beam) (fixed)
