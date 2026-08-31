@@ -1,191 +1,14 @@
-import os
-import glob
-import re
-import warnings
-import numpy as np
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-from scipy.optimize import minimize
-import emcee
-import corner
+with open('/media/kyle/kyle_phd/GRS1915/plot_sep_vs_time_poly.py', 'r') as f:
+    lines = f.readlines()
 
-
-def compute_hdi(samples, credible_mass=0.6827):
-    # Computes 1D HDI
-    sorted_samples = np.sort(samples)
-    window_size = int(np.ceil(credible_mass * len(sorted_samples)))
-    if window_size == 0 or window_size > len(sorted_samples):
-        return [sorted_samples[0], np.median(samples), sorted_samples[-1]]
-    window_widths = sorted_samples[window_size-1:] - sorted_samples[:-window_size+1]
-    min_idx = np.argmin(window_widths)
-    hdi_lower = sorted_samples[min_idx]
-    hdi_upper = sorted_samples[min_idx + window_size - 1]
-    return [hdi_lower, np.median(samples), hdi_upper]
-
-def compute_hdi_2d(samples_2d, credible_mass=0.6827):
-    # Computes 2D HDI along axis=0
-    n_samples, n_points = samples_2d.shape
-    window_size = int(np.ceil(credible_mass * n_samples))
-    sorted_samples = np.sort(samples_2d, axis=0)
-    window_widths = sorted_samples[window_size-1:, :] - sorted_samples[:-window_size+1, :]
-    min_idx = np.argmin(window_widths, axis=0)
-    point_indices = np.arange(n_points)
-    hdi_lower = sorted_samples[min_idx, point_indices]
-    hdi_upper = sorted_samples[min_idx + window_size - 1, point_indices]
-    medians = np.median(samples_2d, axis=0)
-    return np.array([hdi_lower, medians, hdi_upper])
-
-# Set typography styling
-plt.rcParams['font.family'] = 'serif'
-plt.rcParams['mathtext.fontset'] = 'dejavuserif'
-
-# -----------------------------------------------------------------------------
-# 1. LOAD AND PARSE 2D FITTING DATA
-# -----------------------------------------------------------------------------
-dir_path = '/media/kyle/kyle_phd/GRS1915/S-band-fits'
-files = glob.glob(os.path.join(dir_path, '*2D_Fitting*.txt'))
-
-core_ras_deg = []
-core_decs_deg = []
-core_ra_errs_sec = []
-core_dec_errs_arcsec = []
-epochs_data = []
-
-for f in sorted(files):
-    filename = os.path.basename(f)
-    m = re.search(r'img_(\d+)', filename)
-    if not m:
-        continue
-    ts = int(m.group(1))
-    mjd = ts / 86400.0 + 40587.0
-    
-    with open(f, 'r') as fp:
-        lines = fp.readlines()
-    
-    components = []
-    curr_comp = None
-    for line in lines:
-        if line.startswith('Component #'):
-            curr_comp = {'name': line.strip()}
-            components.append(curr_comp)
-        elif 'Center X' in line and curr_comp is not None:
-            m_ra = re.search(r'=\s*(\d+):(\d+):(\d+\.\d+)\s*±\s*(\d+\.\d+(?:[eE][+-]?\d+)?)', line)
-            if m_ra:
-                h, m_time, s, err_s = float(m_ra.group(1)), float(m_ra.group(2)), float(m_ra.group(3)), float(m_ra.group(4))
-                curr_comp['ra_deg'] = (h + m_time / 60.0 + s / 3600.0) * 15.0
-                curr_comp['ra_err'] = err_s
-        elif 'Center Y' in line and curr_comp is not None:
-            m_dec = re.search(r'=\s*([+-]?\d+):(\d+):(\d+\.\d+)\s*±\s*(\d+\.\d+(?:[eE][+-]?\d+)?)', line)
-            if m_dec:
-                d, m_arc, s_arc, err_arcsec = float(m_dec.group(1)), float(m_dec.group(2)), float(m_dec.group(3)), float(m_dec.group(4))
-                sign = -1 if '-' in m_dec.group(1) else 1
-                curr_comp['dec_deg'] = sign * (abs(d) + m_arc / 60.0 + s_arc / 3600.0)
-                curr_comp['dec_err'] = err_arcsec
-            
-    epoch_comps = []
-    epoch_core_ra = None
-    epoch_core_dec = None
-    epoch_core_ra_err = None
-    epoch_core_dec_err = None
-    
-    for c in components:
-        ra_deg = c.get('ra_deg')
-        dec_deg = c.get('dec_deg')
-        ra_err = c.get('ra_err')
-        dec_err = c.get('dec_err')
-        if ra_deg is not None and dec_deg is not None:
-            epoch_comps.append({'ra_deg': ra_deg, 'dec_deg': dec_deg, 'ra_err': ra_err, 'dec_err': dec_err})
-            if 288.7979 < ra_deg < 288.7982:
-                epoch_core_ra = ra_deg
-                epoch_core_dec = dec_deg
-                epoch_core_ra_err = ra_err
-                epoch_core_dec_err = dec_err
-                core_ras_deg.append(ra_deg)
-                core_decs_deg.append(dec_deg)
-                core_ra_errs_sec.append(ra_err)
-                core_dec_errs_arcsec.append(dec_err)
-                
-    epochs_data.append({
-        'mjd': mjd, 
-        'comps': epoch_comps, 
-        'core_ra': epoch_core_ra, 
-        'core_dec': epoch_core_dec,
-        'core_ra_err': epoch_core_ra_err,
-        'core_dec_err': epoch_core_dec_err
-    })
-
-mean_core_ra = np.mean(core_ras_deg)
-mean_core_dec = np.mean(core_decs_deg)
-mean_core_ra_err = np.sqrt(np.sum(np.array(core_ra_errs_sec)**2)) / len(core_ra_errs_sec)
-mean_core_dec_err = np.sqrt(np.sum(np.array(core_dec_errs_arcsec)**2)) / len(core_dec_errs_arcsec)
-
-n_mjd, n_da, n_dd, n_da_err, n_dd_err = [], [], [], [], []
-s_mjd, s_da, s_dd, s_da_err, s_dd_err = [], [], [], [], []
-
-for epoch in epochs_data:
-    mjd = epoch['mjd']
-    ref_ra = epoch['core_ra'] if epoch['core_ra'] is not None else mean_core_ra
-    ref_dec = epoch['core_dec'] if epoch['core_dec'] is not None else mean_core_dec
-    ref_ra_err = epoch['core_ra_err'] if epoch['core_ra_err'] is not None else mean_core_ra_err
-    ref_dec_err = epoch['core_dec_err'] if epoch['core_dec_err'] is not None else mean_core_dec_err
-    
-    cos_dec = np.cos(np.radians(ref_dec))
-    
-    for c in epoch['comps']:
-        ra_deg = c['ra_deg']
-        dec_deg = c['dec_deg']
-        ra_err = c['ra_err']
-        dec_err = c['dec_err']
+new_lines = []
+skip = False
+for line in lines:
+    if line.startswith('def calc_log_likelihood'):
+        skip = True
         
-        if 288.7979 < ra_deg < 288.7982:
-            continue 
-            
-        d_alpha = (ra_deg - ref_ra) * 3600.0 * cos_dec
-        d_delta = (dec_deg - ref_dec) * 3600.0
-        
-        sigma_alpha_lobe = ra_err * 15.0 * cos_dec
-        sigma_alpha_core = ref_ra_err * 15.0 * cos_dec
-        sigma_d_alpha = np.sqrt(sigma_alpha_lobe**2 + sigma_alpha_core**2)
-        
-        sigma_delta_lobe = dec_err
-        sigma_delta_core = ref_dec_err
-        sigma_d_delta = np.sqrt(sigma_delta_lobe**2 + sigma_delta_core**2)
-        
-        if d_delta > 0:
-            n_mjd.append(mjd)
-            n_da.append(d_alpha)
-            n_dd.append(d_delta)
-            n_da_err.append(sigma_d_alpha)
-            n_dd_err.append(sigma_d_delta)
-        else:
-            s_mjd.append(mjd)
-            s_da.append(d_alpha)
-            s_dd.append(d_delta)
-            s_da_err.append(sigma_d_alpha)
-            s_dd_err.append(sigma_d_delta)
-
-# Sort arrays by time and slice off the initial two epochs
-sort_n = np.argsort(n_mjd)
-n_mjd = np.array(n_mjd)[sort_n][2:]
-n_da = np.array(n_da)[sort_n][2:]
-n_dd = np.array(n_dd)[sort_n][2:]
-n_da_err = np.array(n_da_err)[sort_n][2:]
-n_dd_err = np.array(n_dd_err)[sort_n][2:]
-
-sort_s = np.argsort(s_mjd)
-s_mjd = np.array(s_mjd)[sort_s][2:]
-s_da = np.array(s_da)[sort_s][2:]
-s_dd = np.array(s_dd)[sort_s][2:]
-s_da_err = np.array(s_da_err)[sort_s][2:]
-s_dd_err = np.array(s_dd_err)[sort_s][2:]
-
-n_data = 2 * len(n_mjd) + 2 * len(s_mjd)
-
-# -----------------------------------------------------------------------------
-# 2. GENERAL LIKELIHOOD & PRIOR FUNCTIONS
-# -----------------------------------------------------------------------------
-def calc_log_likelihood(t_ej, v0_n, a_n, v0_s, a_s, pa_0_n, omega_n, pa_0_s, omega_s, log_s):
+        # INSERT THE ORIGINAL CODE BLOCK HERE
+        original_code = """def calc_log_likelihood(t_ej, v0_n, a_n, v0_s, a_s, pa_0_n, omega_n, pa_0_s, omega_s, log_s):
     s2 = (10**log_s)**2
     
     # Northern Lobe
@@ -233,7 +56,7 @@ def log_prior_universal(t_ej, v0_n, a_n, v0_s, a_s, pa_0_n, omega_n, pa_0_s, ome
 # -----------------------------------------------------------------------------
 # 3. QUANTITATIVE MODEL SELECTION (BIC & AIC COMPARISONS)
 # -----------------------------------------------------------------------------
-print("\n" + "="*70)
+print("\\n" + "="*70)
 print(f"{'QUANTITATIVE MODEL SELECTION (BIC / AIC SUITE)':^70}")
 print("="*70)
 
@@ -303,7 +126,7 @@ for m in models:
     print(f"{m['name']:<40} {m['k']:<4} {m['ll']:<10.2f} {m['bic']:<10.2f} {delta_bic:<10.2f}")
 print("-" * 76)
 print(f"--> BEST STATISTICAL MODEL SELECTED: Model {best_model['id']} ({best_model['name']})")
-print("="*70 + "\n")
+print("="*70 + "\\n")
 
 # -----------------------------------------------------------------------------
 # 4. MCMC POSTERIOR SAMPLING FOR THE BEST MODEL
@@ -312,7 +135,7 @@ print(f"Sampling posteriors for Model {best_model['id']} via MCMC...")
 
 if best_model["id"] == 4:
     ndim = 6
-    param_labels = [r"$T_{\rm ej}$", r"$v_{0,n}$", r"$v_{0,s}$", r"${\rm PA}_n$", r"${\rm PA}_s$", r"$\log s$"]
+    param_labels = [r"$T_{\\rm ej}$", r"$v_{0,n}$", r"$v_{0,s}$", r"${\\rm PA}_n$", r"${\\rm PA}_s$", r"$\log s$"]
     
     def log_prior(params):
         return log_prior_universal(params[0], params[1], 0.0, params[2], 0.0, params[3], 0.0, params[4], 0.0, params[5])
@@ -326,7 +149,7 @@ if best_model["id"] == 4:
 
 elif best_model["id"] == 2:
     ndim = 8
-    param_labels = [r"$T_{\rm ej}$", r"$v_{0,n}$", r"$v_{0,s}$", r"${\rm PA}_{0,n}$", r"$\omega_n$", r"${\rm PA}_{0,s}$", r"$\omega_s$", r"$\log s$"]
+    param_labels = [r"$T_{\\rm ej}$", r"$v_{0,n}$", r"$v_{0,s}$", r"${\\rm PA}_{0,n}$", r"$\omega_n$", r"${\\rm PA}_{0,s}$", r"$\omega_s$", r"$\log s$"]
     
     def log_prior(params):
         return log_prior_universal(params[0], params[1], 0.0, params[2], 0.0, params[3], params[4], params[5], params[6], params[7])
@@ -340,7 +163,7 @@ elif best_model["id"] == 2:
 
 elif best_model["id"] == 3:
     ndim = 8
-    param_labels = [r"$T_{\rm ej}$", r"$v_{0,n}$", r"$a_n$", r"$v_{0,s}$", r"$a_s$", r"${\rm PA}_n$", r"${\rm PA}_s$", r"$\log s$"]
+    param_labels = [r"$T_{\\rm ej}$", r"$v_{0,n}$", r"$a_n$", r"$v_{0,s}$", r"$a_s$", r"${\\rm PA}_n$", r"${\\rm PA}_s$", r"$\log s$"]
     
     def log_prior(params):
         return log_prior_universal(params[0], params[1], params[2], params[3], params[4], params[5], 0.0, params[6], 0.0, params[7])
@@ -354,7 +177,7 @@ elif best_model["id"] == 3:
 
 else:
     ndim = 10
-    param_labels = [r"$T_{\rm ej}$", r"$v_{0,n}$", r"$a_n$", r"$v_{0,s}$", r"$a_s$", r"${\rm PA}_{0,n}$", r"$\omega_n$", r"${\rm PA}_{0,s}$", r"$\omega_s$", r"$\log s$"]
+    param_labels = [r"$T_{\\rm ej}$", r"$v_{0,n}$", r"$a_n$", r"$v_{0,s}$", r"$a_s$", r"${\\rm PA}_{0,n}$", r"$\omega_n$", r"${\\rm PA}_{0,s}$", r"$\omega_s$", r"$\log s$"]
     
     def log_prior(params):
         return log_prior_universal(params[0], params[1], params[2], params[3], params[4], params[5], params[6], params[7], params[8], params[9])
@@ -527,4 +350,16 @@ else:
     p_omega_n = compute_hdi(flat_samples[:, 6])
     p_pa_s = compute_hdi(flat_samples[:, 7])
     p_omega_s = compute_hdi(flat_samples[:, 8])
+"""
+        new_lines.append(original_code + "\n")
+    elif line.startswith('# -----------------------------------------------------------------------------'):
+        if skip:
+            if '8. GENERATE PUBLICATION-QUALITY PLOTS' in lines[lines.index(line) + 1]:
+                skip = False
+    
+    if not skip:
+        new_lines.append(line)
+
+with open('/media/kyle/kyle_phd/GRS1915/plot_sep_vs_time_poly.py', 'w') as f:
+    f.write("".join(new_lines))
 
