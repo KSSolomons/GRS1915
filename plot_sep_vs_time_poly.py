@@ -528,3 +528,225 @@ else:
     p_pa_s = compute_hdi(flat_samples[:, 7])
     p_omega_s = compute_hdi(flat_samples[:, 8])
 
+
+# Direct data-derived position angles
+pa_n_ind = np.degrees(np.arctan2(n_da, n_dd))
+pa_err_n_ind = np.degrees(np.sqrt((n_dd * n_da_err)**2 + (n_da * n_dd_err)**2) / (n_da**2 + n_dd**2))
+
+pa_s_ind = np.degrees(np.arctan2(-s_da, -s_dd))
+pa_err_s_ind = np.degrees(np.sqrt(((-s_dd) * s_da_err)**2 + ((-s_da) * s_dd_err)**2) / (s_da**2 + s_dd**2))
+
+# -----------------------------------------------------------------------------
+# 7. PRINT SCIENTIFIC & ASTROPHYSICAL SUMMARY REPORT
+# -----------------------------------------------------------------------------
+print("\n" + "="*70)
+print(f"{'GRS 1915+105 RELATIVISTIC KINEMATIC REPORT':^70}")
+print("="*70)
+print(f"Statistically Preferred Model : Model {best_model['id']} ({best_model['name']})")
+print(f"Data Points Used (N_data)     : {n_data}")
+print(f"Optimized BIC                 : {best_model['bic']:.2f}")
+
+print("\n[1] EJECTION PARAMETERS")
+print("-" * 70)
+print(f"Extrapolated Launch Time (T_ej): MJD {p_Tej[1]:.2f} + {p_Tej[2]-p_Tej[1]:.2f} - {p_Tej[1]-p_Tej[0]:.2f}")
+
+print("\n[2] APPARENT PROPER MOTIONS & JET AXIS")
+print("-" * 70)
+print(f"Receding Lobe (North) Speed (mu_r): {p_v0_n[1]:.4e} + {p_v0_n[2]-p_v0_n[1]:.4e} - {p_v0_n[1]-p_v0_n[0]:.4e} arcsec/day")
+if best_model["id"] in [1, 3]:
+    print(f"Receding Lobe Acceleration (a_n) : {p_a_n[1]:.4e} + {p_a_n[2]-p_a_n[1]:.4e} - {p_a_n[1]-p_a_n[0]:.4e} arcsec/day^2")
+print(f"Approaching Lobe (South) Speed (mu_a): {np.abs(p_v0_s[1]):.4e} + {np.abs(p_v0_s[2]-p_v0_s[1]):.4e} - {np.abs(p_v0_s[1]-p_v0_s[0]):.4e} arcsec/day")
+if best_model["id"] in [1, 3]:
+    print(f"Approaching Lobe Acceleration (a_s) : {p_a_s[1]:.4e} + {p_a_s[2]-p_a_s[1]:.4e} - {p_a_s[1]-p_a_s[0]:.4e} arcsec/day^2")
+print(f"Northern Position Angle (PA_n)    : {p_pa_n[1]:>8.2f} + {p_pa_n[2]-p_pa_n[1]:.2f} - {p_pa_n[1]-p_pa_n[0]:.2f} deg")
+if best_model["id"] in [1, 2]:
+    print(f"Northern Precession Rate (Omega_n): {p_omega_n[1]:>8.3f} + {p_omega_n[2]-p_omega_n[1]:.3f} - {p_omega_n[1]-p_omega_n[0]:.3f} deg/day")
+print(f"Southern Position Angle (PA_s)    : {p_pa_s[1]:>8.2f} + {p_pa_s[2]-p_pa_s[1]:.2f} - {p_pa_s[1]-p_pa_s[0]:.2f} deg")
+if best_model["id"] in [1, 2]:
+    print(f"Southern Precession Rate (Omega_s): {p_omega_s[1]:>8.3f} + {p_omega_s[2]-p_omega_s[1]:.3f} - {p_omega_s[1]-p_omega_s[0]:.3f} deg/day")
+
+print("\n[3] INTRINSIC RELATIVISTIC KINEMATICS")
+print("-" * 70)
+print(f"Assumed Distance (D)              : 9.4 +/- 1.0 kpc")
+print(f"Derived beta * cos(theta)         : {p_bct[1]:>8.4f} + {p_bct[2]-p_bct[1]:.4f} - {p_bct[1]-p_bct[0]:.4f}")
+print(f"Intrinsic Jet Speed (beta = v/c)  : {p_beta[1]:>8.4f} + {p_beta[2]-p_beta[1]:.4f} - {p_beta[1]-p_beta[0]:.4f} c")
+print(f"Lorentz Factor (Gamma)            : {p_gamma[1]:>8.4f} + {p_gamma[2]-p_gamma[1]:.4f} - {p_gamma[1]-p_gamma[0]:.4f}")
+print(f"Proper 4-Velocity (Gamma * Beta)  : {p_gammabeta[1]:>8.4f} + {p_gammabeta[2]-p_gammabeta[1]:.4f} - {p_gammabeta[1]-p_gammabeta[0]:.4f}")
+print(f"Jet Inclination Angle (theta)     : {p_theta[1]:>8.2f} + {p_theta[2]-p_theta[1]:.2f} - {p_theta[1]-p_theta[0]:.2f} deg")
+print(f"Approaching Doppler Factor (delta_a): {p_delta_app[1]:>6.4f} + {p_delta_app[2]-p_delta_app[1]:.4f} - {p_delta_app[1]-p_delta_app[0]:.4f}")
+print(f"Receding Doppler Factor (delta_r) : {p_delta_rec[1]:>8.4f} + {p_delta_rec[2]-p_delta_rec[1]:.4f} - {p_delta_rec[1]-p_delta_rec[0]:.4f}")
+print(f"Kinematic Doppler Factor Ratio    : {p_dratio[1]:>8.2f} + {p_dratio[2]-p_dratio[1]:.2f} - {p_dratio[1]-p_dratio[0]:.2f}")
+print(f"True Intrinsic Angular Velocity   : {p_mutrue[1]:.4e} + {p_mutrue[2]-p_mutrue[1]:.4e} - {p_mutrue[1]-p_mutrue[0]:.4e} arcsec/day")
+print(f"Maximum Physical Distance (D_max) : {p_Dmax[1]:>8.2f} + {p_Dmax[2]-p_Dmax[1]:.2f} - {p_Dmax[1]-p_Dmax[0]:.2f} kpc")
+print("="*70 + "\n")
+
+# -----------------------------------------------------------------------------
+# 8. GENERATE PUBLICATION-QUALITY PLOTS
+# -----------------------------------------------------------------------------
+print("Generating publication plots for the preferred model...")
+
+# --- Plot 1: Parallel and Perpendicular Separation vs Time ---
+fig, ax = plt.subplots(figsize=(12, 6))
+ax.axhline(0, color='grey', linestyle=':', linewidth=1)
+
+t_start = np.min(t_ej_chain) - 5
+t_end = max(np.max(n_mjd), np.max(s_mjd)) + 10
+t_smooth = np.linspace(t_start, t_end, 500)
+
+models_n = []
+models_s = []
+
+# Draw sample paths from MCMC posterior to construct 68% HDI
+inds = np.random.randint(len(flat_samples), size=5000)
+for i in inds:
+    t_ej_s, v0_n_s, a_n_s, v0_s_s, a_s_s, pa_0_n_s, omega_n_s, pa_0_s_s, omega_s_s, _ = unpack_params(flat_samples[i], best_model["id"])
+    dt = t_smooth - t_ej_s
+    
+    m_n = v0_n_s * dt + 0.5 * a_n_s * dt**2
+    m_n[dt < 0] = 0.0
+    models_n.append(m_n)
+    
+    m_s = v0_s_s * dt + 0.5 * a_s_s * dt**2
+    m_s[dt < 0] = 0.0
+    models_s.append(m_s)
+
+q_n = np.percentile(np.array(models_n), [16, 50, 84], axis=0)
+q_s = np.percentile(np.array(models_s), [16, 50, 84], axis=0)
+
+# Median lines
+t_plot = t_smooth[t_smooth >= p_Tej[1]]
+dt_plot = t_plot - p_Tej[1]
+med_t_ej, med_v0_n, med_a_n, med_v0_s, med_a_s, med_pa_n, med_w_n, med_pa_s, med_w_s, _ = unpack_params(p_med[1], best_model["id"])
+
+med_n = med_v0_n * dt_plot + 0.5 * med_a_n * dt_plot**2
+med_s = med_v0_s * dt_plot + 0.5 * med_a_s * dt_plot**2
+
+ax.plot(t_plot - 60000, med_n, color='orange', linestyle='-', linewidth=2, zorder=1.5, label='Model Posterior Median')
+ax.fill_between(t_smooth - 60000, q_n[0], q_n[2], color='navajowhite', alpha=0.5, zorder=1.4, label='Model Posterior 68% HDI')
+
+ax.plot(t_plot - 60000, med_s, color='orange', linestyle='-', linewidth=2, zorder=1.5)
+ax.fill_between(t_smooth - 60000, q_s[0], q_s[2], color='navajowhite', alpha=0.5, zorder=1.4)
+
+# Rotate data points using median fitted position angles
+th_n_opt = np.radians(med_pa_n + med_w_n * (n_mjd - med_t_ej))
+sin_n_opt, cos_n_opt = np.sin(th_n_opt), np.cos(th_n_opt)
+n_par_opt = n_da * sin_n_opt + n_dd * cos_n_opt
+n_perp_opt = n_da * cos_n_opt - n_dd * sin_n_opt
+n_par_err_opt = np.sqrt((n_da_err * sin_n_opt)**2 + (n_dd_err * cos_n_opt)**2)
+n_perp_err_opt = np.sqrt((n_da_err * cos_n_opt)**2 + (n_dd_err * sin_n_opt)**2)
+
+th_s_opt = np.radians(med_pa_s + med_w_s * (s_mjd - med_t_ej))
+sin_s_opt, cos_s_opt = np.sin(th_s_opt), np.cos(th_s_opt)
+s_par_opt = s_da * sin_s_opt + s_dd * cos_s_opt
+s_perp_opt = s_da * cos_s_opt - s_dd * sin_s_opt
+s_par_err_opt = np.sqrt((s_da_err * sin_s_opt)**2 + (s_dd_err * cos_s_opt)**2)
+s_perp_err_opt = np.sqrt((s_da_err * cos_s_opt)**2 + (s_dd_err * sin_s_opt)**2)
+
+# Parallel separation data points
+ax.errorbar(n_mjd - 60000, n_par_opt, yerr=n_par_err_opt, fmt='^', color='dodgerblue', markeredgecolor='black', markersize=12, zorder=2, ecolor='black', capsize=0, elinewidth=1.5, label=r'$\Delta\theta_\parallel^N$')
+ax.errorbar(s_mjd - 60000, s_par_opt, yerr=s_par_err_opt, fmt='v', color='red', markeredgecolor='black', markersize=12, zorder=2, ecolor='black', capsize=0, elinewidth=1.5, label=r'$\Delta\theta_\parallel^S$')
+
+# Perpendicular separation data points
+ax.errorbar(n_mjd - 60000, n_perp_opt, yerr=n_perp_err_opt, fmt='^-', color='lightgrey', markeredgecolor='lightgrey', markersize=12, zorder=1, ecolor='lightgrey', capsize=0, linewidth=1.5, label=r'$\Delta\theta_\perp^N$')
+ax.errorbar(s_mjd - 60000, s_perp_opt, yerr=s_perp_err_opt, fmt='v-', color='lightgrey', markeredgecolor='lightgrey', markersize=12, zorder=1, ecolor='lightgrey', capsize=0, linewidth=1.5, label=r'$\Delta\theta_\perp^S$')
+
+ax.set_ylabel(r'Separation ($^{\prime\prime}$)', fontsize=24)
+ax.set_xlabel('Time (MJD - 60000)', fontsize=24)
+ax.set_xlim(left=300)
+
+# Extract handles and labels to reorder them for the legend
+handles, labels = ax.get_legend_handles_labels()
+# Reorder to match reference: Perp N, Perp S, Par N, Par S, Median, HDI
+order = [2, 3, 0, 1, 4, 5]
+ax.legend([handles[idx] for idx in order], [labels[idx] for idx in order], loc='lower left', ncol=3, fontsize=17)
+
+ax.minorticks_on()
+ax.tick_params(axis='both', which='major', direction='in', top=True, right=True, labelsize=18, length=8, width=1.5)
+ax.tick_params(axis='both', which='minor', direction='in', top=True, right=True, length=4, width=1)
+
+plt.savefig('/media/kyle/kyle_phd/GRS1915/parallel_perp_fit_plot.png', dpi=300, bbox_inches='tight')
+plt.close(fig)
+print("Saved displacement plot to /media/kyle/kyle_phd/GRS1915/parallel_perp_fit_plot.png")
+
+# --- Plot 2: Position Angle vs Time ---
+fig2, ax2 = plt.subplots(figsize=(10, 8), dpi=300)
+
+models_pa_n = []
+models_pa_s = []
+for i in inds:
+    t_ej_s, _, _, _, _, pa_0_n_s, omega_n_s, pa_0_s_s, omega_s_s, _ = unpack_params(flat_samples[i], best_model["id"])
+    dt = t_smooth - t_ej_s
+    models_pa_n.append(pa_0_n_s + omega_n_s * dt)
+    models_pa_s.append(pa_0_s_s + omega_s_s * dt)
+
+q_pa_n = np.percentile(np.array(models_pa_n), [16, 50, 84], axis=0)
+q_pa_s = np.percentile(np.array(models_pa_s), [16, 50, 84], axis=0)
+
+ax2.plot(t_smooth - 60000, q_pa_n[1], color='dodgerblue', linestyle='--', linewidth=2, label='North Model (Median)')
+ax2.fill_between(t_smooth - 60000, q_pa_n[0], q_pa_n[2], color='dodgerblue', alpha=0.25)
+
+ax2.plot(t_smooth - 60000, q_pa_s[1], color='darkorange', linestyle='--', linewidth=2, label='South Model (Median)')
+ax2.fill_between(t_smooth - 60000, q_pa_s[0], q_pa_s[2], color='darkorange', alpha=0.25)
+
+ax2.errorbar(n_mjd - 60000, pa_n_ind, yerr=pa_err_n_ind, fmt='^', color='dodgerblue', markeredgecolor='black', markersize=8, zorder=2, ecolor='gray', capsize=3, label='North PA Data')
+ax2.errorbar(s_mjd - 60000, pa_s_ind, yerr=pa_err_s_ind, fmt='v', color='darkorange', markeredgecolor='black', markersize=8, zorder=2, ecolor='gray', capsize=3, label='South PA Data')
+
+ax2.set_ylabel(r'Northern Lobe Position Angle ($^{\circ}$)', fontsize=24, color='dodgerblue')
+ax2.set_xlabel('Time (MJD - 60000)', fontsize=24)
+ax2.legend(loc='best', fontsize=12)
+ax2.set_title('Jet Axis Position Angle Evolution', fontsize=24)
+ax2.minorticks_on()
+ax2.tick_params(axis='both', which='major', direction='in', top=True, labelsize=18, length=8, width=1.5)
+ax2.tick_params(axis='both', which='minor', direction='in', top=True, length=4, width=1)
+ax2.tick_params(axis='y', labelcolor='dodgerblue')
+
+ax2_twin = ax2.twinx()
+y1, y2 = ax2.get_ylim()
+ax2_twin.set_ylim(y1 + 180, y2 + 180)
+ax2_twin.set_ylabel(r'Southern Lobe Position Angle ($^{\circ}$)', fontsize=24, color='darkorange')
+ax2_twin.minorticks_on()
+ax2_twin.tick_params(axis='y', which='major', direction='in', right=True, labelsize=18, length=8, width=1.5)
+ax2_twin.tick_params(axis='y', which='minor', direction='in', right=True, length=4, width=1)
+ax2_twin.tick_params(axis='y', labelcolor='darkorange')
+
+plt.tight_layout()
+plt.savefig('/media/kyle/kyle_phd/GRS1915/pa_evolution_plot.png', dpi=300)
+plt.close(fig2)
+print("Saved PA evolution plot to /media/kyle/kyle_phd/GRS1915/pa_evolution_plot.png")
+
+# --- Export Clean PA Table ---
+all_mjds = sorted(list(set(np.round(np.concatenate([n_mjd, s_mjd]), 4))))
+
+with open('/media/kyle/kyle_phd/GRS1915/pa_evolution_table.txt', 'w') as f:
+    f.write("MJD\tPA_North_deg\tPA_North_err\tPA_South_deg\tPA_South_err\tAverage_Axis_PA_deg\n")
+    for m in all_mjds:
+        idx_n = np.where(np.abs(n_mjd - m) < 1e-4)[0]
+        if len(idx_n) > 0:
+            pa_n = pa_n_ind[idx_n[0]]
+            err_n = pa_err_n_ind[idx_n[0]]
+        else:
+            pa_n, err_n = np.nan, np.nan
+            
+        idx_s = np.where(np.abs(s_mjd - m) < 1e-4)[0]
+        if len(idx_s) > 0:
+            pa_s = pa_s_ind[idx_s[0]] + 180.0
+            pa_s_shifted = pa_s_ind[idx_s[0]]
+            err_s = pa_err_s_ind[idx_s[0]]
+        else:
+            pa_s, pa_s_shifted, err_s = np.nan, np.nan, np.nan
+            
+        if not np.isnan(pa_n) and not np.isnan(pa_s_shifted):
+            avg_pa = (pa_n + pa_s_shifted) / 2.0
+        elif not np.isnan(pa_n):
+            avg_pa = pa_n
+        elif not np.isnan(pa_s_shifted):
+            avg_pa = pa_s_shifted
+        else:
+            avg_pa = np.nan
+            
+        if not np.isnan(avg_pa) and avg_pa < 0:
+            avg_pa += 180.0
+            
+        f.write(f"{m:.4f}\t{pa_n:.2f}\t{err_n:.2f}\t{pa_s:.2f}\t{err_s:.2f}\t{avg_pa:.2f}\n")
+
+print("Saved PA table to /media/kyle/kyle_phd/GRS1915/pa_evolution_table.txt\n")

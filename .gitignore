@@ -1,0 +1,21 @@
+# Python caches
+__pycache__/
+*.pyc
+
+# Images and plots
+*.png
+*.jpg
+*.jpeg
+*.svg
+
+# Documents
+*.pdf
+
+# Output tables/logs (excluding raw data if needed)
+# pa_evolution_table.txt
+*log.txt
+2D_Fitting_Full_Log.txt
+
+# OS generated files
+.DS_Store
+Thumbs.db
