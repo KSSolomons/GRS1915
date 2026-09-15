@@ -791,7 +791,7 @@ print("Saved best-fit parameters to /media/kyle/kyle_phd/GRS1915/best_fit_params
 # -----------------------------------------------------------------------------
 print("Generating kinematic corner plot (Distance, Theta, Beta)...")
 kinematic_samples = np.vstack((D_kpc_chain, theta_deg_chain, beta_chain)).T
-kinematic_labels = [r"Distance (kpc)", r"$\theta_{\rm ejection}$ ($^\circ$)", r"$\beta_{\rm int}$"]
+kinematic_labels = [r"Distance (kpc)", r"$\theta_{\rm VA}$ ($^\circ$)", r"$\beta$"]
 
 fig_kin_corner = corner.corner(
     kinematic_samples,
