@@ -440,7 +440,7 @@ for i in range(ndim):
 if ndim > 1:
     axes[-1].set_xlabel("Step Number")
 fig_trace.tight_layout()
-fig_trace.savefig('/media/kyle/kyle_phd/GRS1915/mcmc_trace.png', dpi=300)
+fig_trace.savefig('/media/kyle/kyle_phd/GRS1915/figures/mcmc_trace.png', dpi=300)
 plt.close(fig_trace)
 print("Saved trace plot to /media/kyle/kyle_phd/GRS1915/mcmc_trace.png")
 
@@ -453,7 +453,7 @@ fig_corner = corner.corner(
     title_kwargs={"fontsize": 10},
     title_fmt=".2e"
 )
-fig_corner.savefig('/media/kyle/kyle_phd/GRS1915/corner_plot.png', dpi=300)
+fig_corner.savefig('/media/kyle/kyle_phd/GRS1915/figures/corner_plot.png', dpi=300)
 plt.close(fig_corner)
 print("Saved corner plot to /media/kyle/kyle_phd/GRS1915/corner_plot.png")
 
@@ -691,8 +691,8 @@ props = dict(boxstyle='round', facecolor='white', alpha=0.9, edgecolor='darkgrey
 ax.text(0.02, 0.96, textstr, transform=ax.transAxes, fontsize=20,
         verticalalignment='top', bbox=props, zorder=3)
 
-plt.savefig('/media/kyle/kyle_phd/GRS1915/parallel_perp_fit_plot.png', dpi=300, bbox_inches='tight')
-plt.savefig('/media/kyle/kyle_phd/GRS1915/parallel_perp_fit_plot_kinematics.png', dpi=300, bbox_inches='tight')
+plt.savefig('/media/kyle/kyle_phd/GRS1915/figures/parallel_perp_fit_plot.png', dpi=300, bbox_inches='tight')
+plt.savefig('/media/kyle/kyle_phd/GRS1915/figures/parallel_perp_fit_plot_kinematics.png', dpi=300, bbox_inches='tight')
 plt.close(fig)
 print("Saved displacement plot to /media/kyle/kyle_phd/GRS1915/parallel_perp_fit_plot.png and parallel_perp_fit_plot_kinematics.png")
 
@@ -738,14 +738,14 @@ ax2_twin.tick_params(axis='y', which='minor', direction='in', right=True, length
 ax2_twin.tick_params(axis='y', labelcolor='darkorange')
 
 plt.tight_layout()
-plt.savefig('/media/kyle/kyle_phd/GRS1915/pa_evolution_plot.png', dpi=300)
+plt.savefig('/media/kyle/kyle_phd/GRS1915/figures/pa_evolution_plot.png', dpi=300)
 plt.close(fig2)
 print("Saved PA evolution plot to /media/kyle/kyle_phd/GRS1915/pa_evolution_plot.png")
 
 # --- Export Clean PA Table ---
 all_mjds = sorted(list(set(np.round(np.concatenate([n_mjd, s_mjd]), 4))))
 
-with open('/media/kyle/kyle_phd/GRS1915/pa_evolution_table.txt', 'w') as f:
+with open('/media/kyle/kyle_phd/GRS1915/data/pa_evolution_table.txt', 'w') as f:
     f.write("MJD\tPA_North_deg\tPA_North_err\tPA_South_deg\tPA_South_err\tAverage_Axis_PA_deg\n")
     for m in all_mjds:
         idx_n = np.where(np.abs(n_mjd - m) < 1e-4)[0]
@@ -780,7 +780,7 @@ print("Saved PA table to /media/kyle/kyle_phd/GRS1915/pa_evolution_table.txt\n")
 # Extract median parameters for the best model
 med_t_ej, med_v0_n, med_a_n, med_v0_s, med_a_s, med_pa_n, med_w_n, med_pa_s, med_w_s, med_theta_cone = unpack_params(p_med[1], best_model["id"])
 
-with open('/media/kyle/kyle_phd/GRS1915/best_fit_params.txt', 'w') as f:
+with open('/media/kyle/kyle_phd/GRS1915/data/best_fit_params.txt', 'w') as f:
     f.write(f"theta_cone_deg\t{med_theta_cone}\n")
     f.write(f"pa_n_deg\t{med_pa_n}\n")
     f.write(f"pa_s_deg\t{med_pa_s}\n")
@@ -803,6 +803,6 @@ fig_kin_corner = corner.corner(
     color="mediumseagreen" # Matches the green theme from the paper
 )
 
-fig_kin_corner.savefig('/media/kyle/kyle_phd/GRS1915/corner_plot_kinematics.png', dpi=300)
+fig_kin_corner.savefig('/media/kyle/kyle_phd/GRS1915/figures/corner_plot_kinematics.png', dpi=300)
 plt.close(fig_kin_corner)
 print("Saved kinematic corner plot to /media/kyle/kyle_phd/GRS1915/corner_plot_kinematics.png\n")

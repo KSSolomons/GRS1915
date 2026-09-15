@@ -155,7 +155,7 @@ s_dd_err = np.array([p[4] for p in south_pts])
 # -----------------------------------------------------------------------------
 # 2. LOAD MCMC POSTERIOR OR CALCULATE SINGLE WEIGHTED AVERAGE JET AXIS
 # -----------------------------------------------------------------------------
-best_fit_file = '/media/kyle/kyle_phd/GRS1915/best_fit_params.txt'
+best_fit_file = '/media/kyle/kyle_phd/GRS1915/data/best_fit_params.txt'
 if os.path.exists(best_fit_file):
     params = {}
     with open(best_fit_file, 'r') as f:
@@ -274,5 +274,5 @@ cb_south.set_label('MJD - 60000 (SE)', fontsize=14)
 cb_south.ax.tick_params(labelsize=12)
 cb_south.ax.invert_yaxis()
 plt.tight_layout()
-plt.savefig('/media/kyle/kyle_phd/GRS1915/ra_dec_plot.png', dpi=300, bbox_inches='tight')
+plt.savefig('/media/kyle/kyle_phd/GRS1915/figures/ra_dec_plot.png', dpi=300, bbox_inches='tight')
 print("Successfully generated and saved updated /media/kyle/kyle_phd/GRS1915/ra_dec_plot.png")

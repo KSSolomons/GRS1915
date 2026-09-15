@@ -163,7 +163,7 @@ ax2.minorticks_on()
 ax2.legend(loc='lower left', fontsize=12, frameon=True, edgecolor='darkgrey', ncol=2)
 
 plt.tight_layout()
-out_path = '/media/kyle/kyle_phd/GRS1915/core_offset_plot.png'
+out_path = '/media/kyle/kyle_phd/GRS1915/figures/core_offset_plot.png'
 plt.savefig(out_path, bbox_inches='tight')
 plt.close(fig)
 print(f"Saved plot to {out_path}")
