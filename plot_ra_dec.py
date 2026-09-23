@@ -86,10 +86,8 @@ for f in sorted(files):
         'core_dec_err': epoch_core_dec_err
     })
 
-mean_core_ra = np.mean(core_ras_deg)
-mean_core_dec = np.mean(core_decs_deg)
-mean_core_ra_err = np.sqrt(np.sum(np.array(core_ra_errs_sec)**2)) / len(core_ra_errs_sec)
-mean_core_dec_err = np.sqrt(np.sum(np.array(core_dec_errs_arcsec)**2)) / len(core_dec_errs_arcsec)
+act_ra_deg = (19 + 15/60.0 + 11.558/3600.0) * 15.0
+act_dec_deg = 10 + 56/60.0 + 44.905/3600.0
 
 north_pts = []
 south_pts = []
@@ -101,10 +99,8 @@ epochs_data = epochs_data[2:]
 
 for epoch in epochs_data:
     mjd = epoch['mjd']
-    ref_ra = mean_core_ra
-    ref_dec = mean_core_dec
-    ref_ra_err = mean_core_ra_err
-    ref_dec_err = mean_core_dec_err
+    ref_ra = act_ra_deg
+    ref_dec = act_dec_deg
     cos_dec = np.cos(np.radians(ref_dec))
     
     for c in epoch['comps']:
@@ -113,29 +109,23 @@ for epoch in epochs_data:
         ra_err = c['ra_err']
         dec_err = c['dec_err']
         
-        if 288.7979 < ra_deg < 288.7982:
-            d_alpha = (ra_deg - ref_ra) * 3600.0 * cos_dec
-            d_delta = (dec_deg - ref_dec) * 3600.0
-            sigma_alpha_lobe = ra_err * 15.0 * cos_dec
-            sigma_delta_lobe = dec_err
-            core_pts.append((mjd, d_alpha, d_delta, sigma_alpha_lobe, sigma_delta_lobe))
-            continue 
-        
         d_alpha = (ra_deg - ref_ra) * 3600.0 * cos_dec
         d_delta = (dec_deg - ref_dec) * 3600.0
         
         sigma_alpha_lobe = ra_err * 15.0 * cos_dec
-        sigma_alpha_core = ref_ra_err * 15.0 * cos_dec
-        sigma_d_alpha = np.sqrt(sigma_alpha_lobe**2 + sigma_alpha_core**2)
-        
         sigma_delta_lobe = dec_err
-        sigma_delta_core = ref_dec_err
-        sigma_d_delta = np.sqrt(sigma_delta_lobe**2 + sigma_delta_core**2)
+        
+        if 288.7979 < ra_deg < 288.7982:
+            # Filter the outlier core point as in kinematics script
+            if np.abs(d_alpha - -0.317) < 0.01 and np.abs(d_delta - -0.601) < 0.01:
+                continue
+            core_pts.append((mjd, d_alpha, d_delta, sigma_alpha_lobe, sigma_delta_lobe))
+            continue 
         
         if d_delta > 0:
-            north_pts.append((mjd, d_alpha, d_delta, sigma_d_alpha, sigma_d_delta))
+            north_pts.append((mjd, d_alpha, d_delta, sigma_alpha_lobe, sigma_delta_lobe))
         else:
-            south_pts.append((mjd, d_alpha, d_delta, sigma_d_alpha, sigma_d_delta))
+            south_pts.append((mjd, d_alpha, d_delta, sigma_alpha_lobe, sigma_delta_lobe))
 
 north_pts.sort(key=lambda x: x[0])
 south_pts.sort(key=lambda x: x[0])
@@ -151,6 +141,12 @@ s_da = np.array([p[1] for p in south_pts])
 s_dd = np.array([p[2] for p in south_pts])
 s_da_err = np.array([p[3] for p in south_pts])
 s_dd_err = np.array([p[4] for p in south_pts])
+
+c_mjd = np.array([p[0] for p in core_pts])
+c_da = np.array([p[1] for p in core_pts])
+c_dd = np.array([p[2] for p in core_pts])
+c_da_err = np.array([p[3] for p in core_pts])
+c_dd_err = np.array([p[4] for p in core_pts])
 
 # -----------------------------------------------------------------------------
 # 2. LOAD MCMC POSTERIOR OR CALCULATE SINGLE WEIGHTED AVERAGE JET AXIS
@@ -205,12 +201,13 @@ cax_north = fig.add_subplot(gs[0, 1])
 cax_south = fig.add_subplot(gs[1, 1])
 
 # Color normalization (MJD - 60000)
-mjd_min = min(np.min(n_mjd), np.min(s_mjd)) - 60000
-mjd_max = max(np.max(n_mjd), np.max(s_mjd)) - 60000
+mjd_min = min(np.min(n_mjd), np.min(s_mjd), np.min(c_mjd) if len(c_mjd) > 0 else np.inf) - 60000
+mjd_max = max(np.max(n_mjd), np.max(s_mjd), np.max(c_mjd) if len(c_mjd) > 0 else -np.inf) - 60000
 norm = Normalize(vmin=mjd_min, vmax=mjd_max)
 
 cmap_north = plt.cm.winter_r
 cmap_south = plt.cm.autumn_r
+cmap_core = plt.cm.viridis
 
 # A. Single Average Jet Axis Line
 L = 7.0
@@ -238,11 +235,17 @@ ax.scatter(0, 0, marker='*', s=180, color='gold', edgecolors='black', linewidth=
 # D. Observed Data Points
 ax.errorbar(n_da, n_dd, xerr=n_da_err, yerr=n_dd_err, fmt='none', ecolor='gray', capsize=0, zorder=2, alpha=0.6, elinewidth=1.2)
 ax.errorbar(s_da, s_dd, xerr=s_da_err, yerr=s_dd_err, fmt='none', ecolor='gray', capsize=0, zorder=2, alpha=0.6, elinewidth=1.2)
+if len(c_da) > 0:
+    ax.errorbar(c_da, c_dd, xerr=c_da_err, yerr=c_dd_err, fmt='none', ecolor='gray', capsize=0, zorder=2, alpha=0.6, elinewidth=1.2)
+
 
 scatter_north = ax.scatter(n_da, n_dd, c=n_mjd - 60000, cmap=cmap_north, norm=norm, 
                            marker='^', edgecolors='black', s=60, zorder=3, label=r'$\Delta\theta^N$ Data')
 scatter_south = ax.scatter(s_da, s_dd, c=s_mjd - 60000, cmap=cmap_south, norm=norm, 
                            marker='v', edgecolors='black', s=60, zorder=3, label=r'$\Delta\theta^S$ Data')
+if len(c_da) > 0:
+    scatter_core = ax.scatter(c_da, c_dd, c=c_mjd - 60000, cmap=cmap_core, norm=norm,
+                              marker='o', edgecolors='black', s=60, zorder=3, label=r'Core Data')
 
 # Limits and Labels
 ax.set_xlim(-5.0, 5.0)
