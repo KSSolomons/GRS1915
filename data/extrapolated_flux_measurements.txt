@@ -1,0 +1,53 @@
+Extrapolated Flux Measurements for epochs B1-B4
+=================================================
+Dates of interest:
+  - 2025-01-11 06:03:36 (B1)
+  - 2025-02-02 06:13:52 (B2)
+  - 2025-03-02 02:44:41 (B3)
+  - 2025-03-24 01:35:33 (B4)
+
+Fits were performed using epochs B5 through B12, applying two simple decay models based on days since 2025-01-11 (t0):
+
+1. Exponential Decay Model: F(t) = a * exp(b * t)
+2. Power-Law Decay Model: F(t) = a * (t + 10)^b
+
+--- Core Extrapolations ---
+Exponential Fit: F(t) = 2.8097 * exp(-0.0406 * t)
+  2025-01-11: 2.80974 Jy
+  2025-02-02: 1.15064 Jy
+  2025-03-02: 0.37170 Jy
+  2025-03-24: 0.15256 Jy
+
+Power-law Fit: F(t) = 8.95e10 * (t + 10)^-5.97
+  2025-01-11: 94891.1 Jy (unphysical)
+  2025-02-02: 90.86 Jy
+  2025-03-02: 2.15 Jy
+  2025-03-24: 0.33 Jy
+
+--- NW Lobe Extrapolations ---
+Exponential Fit: F(t) = 0.0079 * exp(-0.0153 * t)
+  2025-01-11: 0.00788 Jy
+  2025-02-02: 0.00562 Jy
+  2025-03-02: 0.00367 Jy
+  2025-03-24: 0.00262 Jy
+
+Power-law Fit: F(t) = 4109 * (t + 10)^-3.04
+  2025-01-11: 3.72583 Jy
+  2025-02-02: 0.10814 Jy
+  2025-03-02: 0.01610 Jy
+  2025-03-24: 0.00622 Jy
+
+--- SE Lobe Extrapolations ---
+Exponential Fit: F(t) = 0.0112 * exp(-0.0187 * t)
+  2025-01-11: 0.01118 Jy
+  2025-02-02: 0.00741 Jy
+  2025-03-02: 0.00441 Jy
+  2025-03-24: 0.00292 Jy
+
+Power-law Fit: F(t) = 64873 * (t + 10)^-3.61
+  2025-01-11: 15.70306 Jy
+  2025-02-02: 0.23387 Jy
+  2025-03-02: 0.02431 Jy
+  2025-03-24: 0.00785 Jy
+
+Notes: The power-law fit blows up very rapidly near t=0 (B1) and is highly sensitive to the exact time of ejection. The exponential decay model yields more conservative and stable extrapolations.

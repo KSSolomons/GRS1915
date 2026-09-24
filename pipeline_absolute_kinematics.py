@@ -64,6 +64,11 @@ for f in files:
                 sign = -1 if '-' in m_dec.group(1) else 1
                 curr_comp['dec_deg'] = sign * (abs(d) + m_arc / 60.0 + s_arc / 3600.0)
                 curr_comp['dec_err'] = err_arcsec
+        elif 'Integrated flux' in line and curr_comp is not None:
+            m_flux = re.search(r'=\s*([\d\.eE+-]+)\s*±\s*([\d\.eE+-]+)', line)
+            if m_flux:
+                curr_comp['flux'] = float(m_flux.group(1))
+                curr_comp['flux_err'] = float(m_flux.group(2))
 
     for c in comps:
         if 'ra_deg' not in c or 'dec_deg' not in c: continue
@@ -72,13 +77,15 @@ for f in files:
         dy = (c['dec_deg'] - act_dec_deg) * 3600.0
         ex = c['ra_err']
         ey = c['dec_err']
+        flux = c.get('flux', 0.0)
+        flux_err = c.get('flux_err', 0.0)
         
         if 288.7979 < c['ra_deg'] < 288.7982:
-            core_data_raw.append([mjd, dx, dy, ex, ey])
+            core_data_raw.append([mjd, dx, dy, ex, ey, flux, flux_err])
         elif dy > 0:
-            n_data.append([mjd, dx, dy, ex, ey])
+            n_data.append([mjd, dx, dy, ex, ey, flux, flux_err])
         else:
-            s_data.append([mjd, dx, dy, ex, ey])
+            s_data.append([mjd, dx, dy, ex, ey, flux, flux_err])
 
 # Hard filter ONLY the farthest extreme outlier as requested for stability
 core_data = []
@@ -299,39 +306,130 @@ flat_samples = sampler.get_chain(discard=burnin, thin=thin, flat=True)
 p_res = [compute_hdi(flat_samples[:, i]) for i in range(ndim)]
 
 # 5. DERIVED KINEMATICS & OUTPUT
-print("\n" + "="*70)
-print(f"{'ABSOLUTE KINEMATIC MODEL RESULTS':^70}")
-print("="*70)
-print(f"Ejection Time (T_ej)     : MJD {p_res[0][1]:.2f} + {p_res[0][2]-p_res[0][1]:.2f} - {p_res[0][1]-p_res[0][0]:.2f}")
-print(f"Receding Speed (N)       : {p_res[1][1]:.4e} + {p_res[1][2]-p_res[1][1]:.4e} - {p_res[1][1]-p_res[1][0]:.4e} arcsec/day")
-
+t_ej_chain = flat_samples[:, 0]
+v0_n_chain = flat_samples[:, 1]
 v0_s_idx = 2 if best_model["id"] in [2, 4] else 3
-print(f"Approaching Speed (S)    : {np.abs(p_res[v0_s_idx][1]):.4e} + {np.abs(p_res[v0_s_idx][0]-p_res[v0_s_idx][1]):.4e} - {np.abs(p_res[v0_s_idx][1]-p_res[v0_s_idx][2]):.4e} arcsec/day")
+v0_s_chain = flat_samples[:, v0_s_idx]
 
+pa_n_idx = param_labels.index(r"${\rm PA}_n$") if r"${\rm PA}_n$" in param_labels else param_labels.index(r"${\rm PA}_{0,n}$")
+pa_s_idx = param_labels.index(r"${\rm PA}_s$") if r"${\rm PA}_s$" in param_labels else param_labels.index(r"${\rm PA}_{0,s}$")
 xc_idx, yc_idx = ndim - 2, ndim - 1
-print(f"Core Offset RA (x_c)     : {p_res[xc_idx][1]:.4f} + {p_res[xc_idx][2]-p_res[xc_idx][1]:.4f} - {p_res[xc_idx][1]-p_res[xc_idx][0]:.4f} arcsec")
-print(f"Core Offset Dec (y_c)    : {p_res[yc_idx][1]:.4f} + {p_res[yc_idx][2]-p_res[yc_idx][1]:.4f} - {p_res[yc_idx][1]-p_res[yc_idx][0]:.4f} arcsec")
 
+mu_app_chain = np.abs(v0_s_chain)
+mu_rec_chain = np.abs(v0_n_chain)
+
+# 1. Distance-independent beta * cos(theta)
+beta_cos_theta_chain = (mu_app_chain - mu_rec_chain) / (mu_app_chain + mu_rec_chain)
+mu_true_chain = (2 * mu_app_chain * mu_rec_chain) / (mu_app_chain + mu_rec_chain)
+
+# 2. Distance-dependent beta * sin(theta) (assumed D = 9.4 +/- 1.0 kpc)
+D_kpc_chain = np.random.normal(9.4, 1.0, size=len(mu_app_chain))
+D_m_chain = D_kpc_chain * 3.086e19
 c = 2.99792458e8
-mu_app = np.abs(flat_samples[:, v0_s_idx])
-mu_rec = np.abs(flat_samples[:, 1])
 
-beta_cos_theta = (mu_app - mu_rec) / (mu_app + mu_rec)
-D_m = np.random.normal(9.4, 1.0, size=len(mu_app)) * 3.086e19
-mu_app_rad_s = mu_app * (np.pi / (180.0 * 3600.0)) / 86400.0
-beta_sin_theta = mu_app_rad_s * (1.0 - beta_cos_theta) * D_m / c
-beta = np.sqrt(beta_cos_theta**2 + beta_sin_theta**2)
-theta_deg = np.degrees(np.arctan2(beta_sin_theta, beta_cos_theta))
+mu_app_rad_s = mu_app_chain * (np.pi / (180.0 * 3600.0)) / 86400.0
+beta_sin_theta_chain = mu_app_rad_s * (1.0 - beta_cos_theta_chain) * D_m_chain / c
 
-p_bct = compute_hdi(beta_cos_theta)
-p_beta = compute_hdi(beta)
-p_theta = compute_hdi(theta_deg)
+# 3. Intrinsic Jet Speed beta, Lorentz factor gamma, and Inclination Angle theta
+beta_chain = np.sqrt(beta_cos_theta_chain**2 + beta_sin_theta_chain**2)
+beta_clamped = np.clip(beta_chain, 0.0, 0.999999)
+gamma_chain = 1.0 / np.sqrt(1.0 - beta_clamped**2)
+gamma_beta_chain = gamma_chain * beta_chain
+theta_deg_chain = np.degrees(np.arctan2(beta_sin_theta_chain, beta_cos_theta_chain))
 
-print("\n--- Intrinsic Properties ---")
-print(f"beta * cos(theta)        : {p_bct[1]:.4f} + {p_bct[2]-p_bct[1]:.4f} - {p_bct[1]-p_bct[0]:.4f}")
-print(f"Intrinsic Jet Speed (beta): {p_beta[1]:.4f} + {p_beta[2]-p_beta[1]:.4f} - {p_beta[1]-p_beta[0]:.4f} c")
-print(f"Inclination Angle (theta): {p_theta[1]:.2f} + {p_theta[2]-p_theta[1]:.2f} - {p_theta[1]-p_theta[0]:.2f} deg")
+# Doppler factors for approaching and receding lobes
+delta_app_chain = 1.0 / (gamma_chain * (1.0 - beta_cos_theta_chain))
+delta_rec_chain = 1.0 / (gamma_chain * (1.0 + beta_cos_theta_chain))
+
+# Maximum allowed distance
+mu_rec_rad_s = mu_rec_chain * (np.pi / (180.0 * 3600.0)) / 86400.0
+D_max_kpc_chain = (c / np.sqrt(mu_app_rad_s * mu_rec_rad_s)) / 3.086e19
+delta_ratio_chain = ((1.0 + beta_cos_theta_chain) / (1.0 - beta_cos_theta_chain))
+
+p_Tej = compute_hdi(t_ej_chain)
+p_v0_n = compute_hdi(v0_n_chain)
+p_v0_s = compute_hdi(v0_s_chain)
+p_bct = compute_hdi(beta_cos_theta_chain)
+p_beta = compute_hdi(beta_chain)
+p_gamma = compute_hdi(gamma_chain)
+p_gammabeta = compute_hdi(gamma_beta_chain)
+p_theta = compute_hdi(theta_deg_chain)
+p_delta_app = compute_hdi(delta_app_chain)
+p_delta_rec = compute_hdi(delta_rec_chain)
+p_mutrue = compute_hdi(mu_true_chain)
+p_Dmax = compute_hdi(D_max_kpc_chain)
+p_dratio = compute_hdi(delta_ratio_chain)
+p_pa_n = p_res[pa_n_idx]
+p_pa_s = p_res[pa_s_idx]
+
+# Acceleration percentiles if present
+if best_model["id"] in [1, 3]:
+    p_a_n = p_res[2]
+    p_a_s = p_res[4]
+
+if best_model["id"] in [1, 2]:
+    w_n_idx = param_labels.index(r"$\omega_n$")
+    w_s_idx = param_labels.index(r"$\omega_s$")
+    p_omega_n = p_res[w_n_idx]
+    p_omega_s = p_res[w_s_idx]
+
+print("\n" + "="*70)
+print(f"{'GRS 1915+105 RELATIVISTIC KINEMATIC REPORT (ABSOLUTE)':^70}")
 print("="*70)
+print(f"Statistically Preferred Model : Model {best_model['id']} ({best_model['name']})")
+print(f"Data Points Used (N_data)     : {num_obs_total}")
+print(f"Optimized BIC                 : {best_model['bic']:.2f}")
+
+print("\n[1] EJECTION PARAMETERS")
+print("-" * 70)
+print(f"Extrapolated Launch Time (T_ej): MJD {p_Tej[1]:.2f} + {p_Tej[2]-p_Tej[1]:.2f} - {p_Tej[1]-p_Tej[0]:.2f}")
+print(f"Core Offset RA (x_c)           : {p_res[xc_idx][1]:.4f} + {p_res[xc_idx][2]-p_res[xc_idx][1]:.4f} - {p_res[xc_idx][1]-p_res[xc_idx][0]:.4f} arcsec")
+print(f"Core Offset Dec (y_c)          : {p_res[yc_idx][1]:.4f} + {p_res[yc_idx][2]-p_res[yc_idx][1]:.4f} - {p_res[yc_idx][1]-p_res[yc_idx][0]:.4f} arcsec")
+
+print("\n[2] APPARENT PROPER MOTIONS & JET AXIS")
+print("-" * 70)
+print(f"Receding Lobe (North) Speed (mu_r): {p_v0_n[1]:.4e} + {p_v0_n[2]-p_v0_n[1]:.4e} - {p_v0_n[1]-p_v0_n[0]:.4e} arcsec/day")
+if best_model["id"] in [1, 3]:
+    print(f"Receding Lobe Acceleration (a_n) : {p_a_n[1]:.4e} + {p_a_n[2]-p_a_n[1]:.4e} - {p_a_n[1]-p_a_n[0]:.4e} arcsec/day^2")
+print(f"Approaching Lobe (South) Speed (mu_a): {np.abs(p_v0_s[1]):.4e} + {np.abs(p_v0_s[2]-p_v0_s[1]):.4e} - {np.abs(p_v0_s[1]-p_v0_s[0]):.4e} arcsec/day")
+if best_model["id"] in [1, 3]:
+    print(f"Approaching Lobe Acceleration (a_s) : {p_a_s[1]:.4e} + {p_a_s[2]-p_a_s[1]:.4e} - {p_a_s[1]-p_a_s[0]:.4e} arcsec/day^2")
+print(f"Northern Position Angle (PA_n)    : {p_pa_n[1]:>8.2f} + {p_pa_n[2]-p_pa_n[1]:.2f} - {p_pa_n[1]-p_pa_n[0]:.2f} deg")
+print(f"Standard Astronomical PA_n (EoN)  : {p_pa_n[1] + 180:>8.2f} deg")
+if best_model["id"] in [1, 2]:
+    print(f"Northern Precession Rate (Omega_n): {p_omega_n[1]:>8.3f} + {p_omega_n[2]-p_omega_n[1]:.3f} - {p_omega_n[1]-p_omega_n[0]:.3f} deg/day")
+print(f"Southern Position Angle (PA_s)    : {p_pa_s[1]:>8.2f} + {p_pa_s[2]-p_pa_s[1]:.2f} - {p_pa_s[1]-p_pa_s[0]:.2f} deg")
+print(f"Standard Astronomical PA_s (EoN)  : {p_pa_s[1] + 180:>8.2f} deg")
+if best_model["id"] in [1, 2]:
+    print(f"Southern Precession Rate (Omega_s): {p_omega_s[1]:>8.3f} + {p_omega_s[2]-p_omega_s[1]:.3f} - {p_omega_s[1]-p_omega_s[0]:.3f} deg/day")
+
+print("\n[3] INTRINSIC RELATIVISTIC KINEMATICS")
+print("-" * 70)
+print(f"Assumed Distance (D)              : 9.4 +/- 1.0 kpc")
+print(f"Derived beta * cos(theta)         : {p_bct[1]:>8.4f} + {p_bct[2]-p_bct[1]:.4f} - {p_bct[1]-p_bct[0]:.4f}")
+print(f"Intrinsic Jet Speed (beta = v/c)  : {p_beta[1]:>8.4f} + {p_beta[2]-p_beta[1]:.4f} - {p_beta[1]-p_beta[0]:.4f} c")
+print(f"Lorentz Factor (Gamma)            : {p_gamma[1]:>8.4f} + {p_gamma[2]-p_gamma[1]:.4f} - {p_gamma[1]-p_gamma[0]:.4f}")
+print(f"Proper 4-Velocity (Gamma * Beta)  : {p_gammabeta[1]:>8.4f} + {p_gammabeta[2]-p_gammabeta[1]:.4f} - {p_gammabeta[1]-p_gammabeta[0]:.4f}")
+print(f"Jet Inclination Angle (theta)     : {p_theta[1]:>8.2f} + {p_theta[2]-p_theta[1]:.2f} - {p_theta[1]-p_theta[0]:.2f} deg")
+print(f"Approaching Doppler Factor (delta_a): {p_delta_app[1]:>6.4f} + {p_delta_app[2]-p_delta_app[1]:.4f} - {p_delta_app[1]-p_delta_app[0]:.4f}")
+print(f"Receding Doppler Factor (delta_r) : {p_delta_rec[1]:>8.4f} + {p_delta_rec[2]-p_delta_rec[1]:.4f} - {p_delta_rec[1]-p_delta_rec[0]:.4f}")
+print(f"Kinematic Doppler Factor Ratio    : {p_dratio[1]:>8.2f} + {p_dratio[2]-p_dratio[1]:.2f} - {p_dratio[1]-p_dratio[0]:.2f}")
+print(f"True Intrinsic Angular Velocity   : {p_mutrue[1]:.4e} + {p_mutrue[2]-p_mutrue[1]:.4e} - {p_mutrue[1]-p_mutrue[0]:.4e} arcsec/day")
+print(f"Maximum Physical Distance (D_max) : {p_Dmax[1]:>8.2f} + {p_Dmax[2]-p_Dmax[1]:.2f} - {p_Dmax[1]-p_Dmax[0]:.2f} kpc")
+print("="*70 + "\n")
+
+print("\nGenerating intrinsic kinematics corner plot...")
+samples_intrinsic = np.vstack([D_m_chain / 3.086e19, theta_deg_chain, beta_chain]).T
+fig_corner_kin = corner.corner(
+    samples_intrinsic,
+    labels=[r"Distance (kpc)", r"$\theta$ (deg)", r"$\beta$ ($v/c$)"],
+    quantiles=[0.16, 0.5, 0.84],
+    show_titles=True,
+    title_kwargs={"fontsize": 12}
+)
+fig_corner_kin.savefig('/media/kyle/kyle_phd/GRS1915/figures/absolute_corner_plot_kinematics.png', dpi=300)
+plt.close(fig_corner_kin)
+print("Saved intrinsic corner plot to /media/kyle/kyle_phd/GRS1915/figures/absolute_corner_plot_kinematics.png")
 
 # Generate plots
 fig_corner = corner.corner(
@@ -480,3 +578,86 @@ with warnings.catch_warnings():
 plt.savefig('/media/kyle/kyle_phd/GRS1915/figures/ra_dec_plot.png', dpi=300, bbox_inches='tight')
 plt.close(fig)
 print("Successfully generated and saved merged /media/kyle/kyle_phd/GRS1915/figures/ra_dec_plot.png")
+
+# -----------------------------------------------------------------------------
+# 6.5. SAVE DATA FOR STANDALONE SEPARATION PLOT
+# -----------------------------------------------------------------------------
+print("\nSaving data for standalone parallel/perpendicular separation plotting...")
+os.makedirs('/media/kyle/kyle_phd/GRS1915/data', exist_ok=True)
+np.savez('/media/kyle/kyle_phd/GRS1915/data/absolute_kinematics_plot_data.npz',
+         flat_samples=flat_samples,
+         best_model_id=best_model["id"],
+         p_Tej=p_Tej,
+         best_model_res_x=best_model["res"].x,
+         n_mjd=n_mjd, n_da=n_da, n_dd=n_dd, n_da_err=n_da_err, n_dd_err=n_dd_err,
+         s_mjd=s_mjd, s_da=s_da, s_dd=s_dd, s_da_err=s_da_err, s_dd_err=s_dd_err,
+         c_mjd=c_mjd)
+print("Saved plot data to /media/kyle/kyle_phd/GRS1915/data/absolute_kinematics_plot_data.npz")
+
+# -----------------------------------------------------------------------------
+# 7. FLUX EVOLUTION AND EXTRAPOLATION
+# -----------------------------------------------------------------------------
+print("\nGenerating Flux Evolution Plot...")
+def exp_model(t, a, b):
+    return a * np.exp(b * t)
+
+def pl_model(t, a, b):
+    # offset by 10 days to avoid singularity near t=0 if t is relative to outburst
+    return a * (t + 10)**b
+
+from scipy.optimize import curve_fit
+import datetime
+
+fig_flux, ax_flux = plt.subplots(figsize=(10, 6))
+
+target_dates = ['2025-01-11 06:03:36', '2025-02-02 06:13:52', '2025-03-02 02:44:41', '2025-03-24 01:35:33']
+target_ts = [datetime.datetime.strptime(d, '%Y-%m-%d %H:%M:%S').timestamp() for d in target_dates]
+t0_mjd = target_ts[0] / 86400.0 + 40587.0
+target_mjd = np.array(target_ts) / 86400.0 + 40587.0
+
+colors = {'Core': 'black', 'NW Lobe': 'blue', 'SE Lobe': 'red'}
+markers = {'Core': 'o', 'NW Lobe': 's', 'SE Lobe': '^'}
+
+for label, dataset in [('Core', core_data), ('NW Lobe', n_data), ('SE Lobe', s_data)]:
+    if len(dataset) < 3: continue
+    
+    t_data = dataset[:, 0]
+    f_data = dataset[:, 5]
+    err_data = dataset[:, 6]
+    
+    valid = f_data > 0
+    t_data = t_data[valid]
+    f_data = f_data[valid]
+    err_data = err_data[valid]
+    
+    t_days = t_data - t0_mjd
+    target_days = target_mjd - t0_mjd
+    
+    try:
+        if label == 'Core':
+            popt, _ = curve_fit(pl_model, t_days, f_data, sigma=err_data, absolute_sigma=True, p0=[f_data[0] * 1000, -1.0])
+            f_extrap = pl_model(target_days, *popt)
+            t_fit = np.linspace(min(target_mjd) - 5, max(t_data) + 5, 200)
+            f_fit = pl_model(t_fit - t0_mjd, *popt)
+        else:
+            popt, _ = curve_fit(exp_model, t_days, f_data, sigma=err_data, absolute_sigma=True, p0=[f_data[0], -0.01])
+            f_extrap = exp_model(target_days, *popt)
+            t_fit = np.linspace(min(target_mjd) - 5, max(t_data) + 5, 200)
+            f_fit = exp_model(t_fit - t0_mjd, *popt)
+            
+        ax_flux.errorbar(t_data - 60000, f_data, yerr=err_data, fmt=markers[label], color=colors[label], label=f'{label} Data', capsize=3)
+        ax_flux.plot(t_fit - 60000, f_fit, color=colors[label], linestyle='--', alpha=0.7)
+        ax_flux.scatter(target_mjd - 60000, f_extrap, facecolors='none', edgecolors=colors[label], marker=markers[label], s=100, linewidth=2, label=f'{label} Extrapolated')
+    except Exception as e:
+        print(f"Failed to fit {label}: {e}")
+
+ax_flux.set_yscale('log')
+ax_flux.set_xlabel('Time (MJD - 60000)', fontsize=14)
+ax_flux.set_ylabel('Flux (Jy)', fontsize=14)
+ax_flux.set_title('Flux Evolution and Extrapolation', fontsize=16)
+ax_flux.grid(True, which='both', linestyle='--', alpha=0.5)
+ax_flux.legend(loc='best')
+plt.tight_layout()
+plt.savefig('/media/kyle/kyle_phd/GRS1915/figures/flux_evolution_with_extrap.png', dpi=300)
+plt.close(fig_flux)
+print("Successfully generated and saved /media/kyle/kyle_phd/GRS1915/figures/flux_evolution_with_extrap.png")
