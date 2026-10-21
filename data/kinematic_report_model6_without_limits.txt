@@ -1,0 +1,81 @@
+======================================================================================
+                    QUANTITATIVE MODEL SELECTION (BIC / AIC SUITE)                    
+======================================================================================
+Model Description                                      k    ln(L)      BIC        Delta BIC 
+--------------------------------------------------------------------------------------
+Ballistic (Free Tej)                                   8    -216.16    463.30     0.00      
+Ballistic (Anchored Tej=60600±100)                     8    -216.68    464.32     1.02      
+Piecewise Deceleration (Free Tej)                      12   -214.48    475.42     12.12     
+Piecewise Deceleration (Anchored Tej=60600±100)        12   -214.46    475.37     12.07     
+Smooth Continuous Deceleration (Free Tej)              10   -214.58    467.87     4.57      
+Smooth Continuous Deceleration (Anchored Tej=60600±100) 10   -214.96    468.63     5.34      
+--------------------------------------------------------------------------------------
+--> ADOPTED BEST MODEL: Model 6 (Smooth Continuous Deceleration (Anchored Tej=60600±100))
+======================================================================================
+
+======================================================================
+     GRS 1915+105 RELATIVISTIC KINEMATIC REPORT (WITHOUT LIMITS)      
+======================================================================
+Statistically Preferred Model : Model 6 (Smooth Continuous Deceleration (Anchored Tej=60600±100))
+Data Points Used (N_data)     : 48
+Optimized BIC                 : 468.63
+Credible Interval Bounds      : 90% HDI (primary) & 68.3% HDI (1-sigma equivalent)
+Physical Velocity Constraint  : Unconstrained (D = 9.4 +/- 1.0 kpc, no artificial capping)
+
+[1] EJECTION PARAMETERS
+----------------------------------------------------------------------
+Extrapolated Launch Time (T_ej): MJD 60481.55 + 97.33 - 99.44 (1-sigma: + 58.51 - 58.60) (Anchored 60600±100)
+Core Offset RA (x_c)           : -0.1914 + 0.0019 - 0.0018 arcsec (1-sigma: + 0.0012 - 0.0011)
+Core Offset Dec (y_c)          : -0.2984 + 0.0021 - 0.0020 arcsec (1-sigma: + 0.0013 - 0.0013)
+
+[2] APPARENT PROPER MOTIONS & JET AXIS
+----------------------------------------------------------------------
+Receding Stall Distance (r_max,r)   : 15.277 + 4.722 - 6.508 arcsec (1-sigma: + 4.722 - 2.346)
+Approaching Stall Distance (r_max,a): 9.476 + 8.306 - 5.513 arcsec (1-sigma: + 3.540 - 5.405)
+Receding Decel Timescale (tau_r)    : 1985.3 + 1013.8 - 1193.1 days (1-sigma: + 707.8 - 661.8)
+Approaching Decel Timescale (tau_a) : 798.9 + 1028.7 - 679.6 days (1-sigma: + 456.4 - 650.3)
+Initial Receding Launch Speed (mu_0,r) : 7.6641e-03 + 2.3137e-03 - 1.9885e-03 arcsec/day (1-sigma: + 1.0471e-03 - 1.4299e-03)
+Initial Receding Apparent Speed (beta_app,0r): 0.4161 + 0.1498 - 0.1303 c (1-sigma: + 0.0704 - 0.0914)
+Initial Approaching Launch Speed (mu_0,a): 1.2031e-02 + 8.1952e-03 - 4.2508e-03 arcsec/day (1-sigma: + 2.6785e-03 - 3.4981e-03)
+Initial Approaching Apparent Speed (beta_app,0a): 0.6590 + 0.4645 - 0.2662 c (1-sigma: + 0.1510 - 0.2180)
+Final Epoch Receding Speed (mu_end,r)  : 6.0464e-03 + 1.6268e-03 - 1.4828e-03 arcsec/day
+Final Epoch Receding Apparent Speed    : 0.3275 + 0.1060 - 0.0976 c
+Final Epoch Approaching Speed (mu_end,a): 6.7706e-03 + 2.1406e-03 - 2.5768e-03 arcsec/day
+Final Epoch Approaching Apparent Speed  : 0.3624 + 0.1413 - 0.1502 c
+Receding Lobe (North) Speed (mu_r): 7.6641e-03 + 2.3137e-03 - 1.9885e-03 arcsec/day (1-sigma: + 1.0471e-03 - 1.4299e-03)
+Receding Apparent Speed (beta_app,r)            : 0.4161 + 0.1498 - 0.1303 c (1-sigma: + 0.0704 - 0.0914)
+Approaching Lobe (South) Speed (mu_a): 1.2031e-02 + 8.1952e-03 - 4.2508e-03 arcsec/day (1-sigma: + 2.6785e-03 - 3.4981e-03)
+Approaching Apparent Speed (beta_app,a)         : 0.6590 + 0.4645 - 0.2662 c (1-sigma: + 0.1510 - 0.2180)
+Northern Position Angle (PA_n)    :   -42.63 + 4.39 - 4.24 deg (1-sigma: + 2.50 - 2.51)
+Standard Astronomical PA_n (EoN)  :   137.37 deg
+Southern Position Angle (PA_s)    :   -41.33 + 4.36 - 4.33 deg (1-sigma: + 2.49 - 2.47)
+Standard Astronomical PA_s (EoN)  :   138.67 deg
+Average Position Angle (PA_avg)   :   -41.99 + 3.05 - 3.01 deg (1-sigma: + 1.74 - 1.75)
+Standard Astronomical PA_avg (EoN):   138.01 + 3.05 - 3.01 deg (1-sigma: + 1.74 - 1.75)
+Scatter Angle (theta_scatter)     :     5.55 + 3.03 - 2.58 deg (1-sigma: + 1.44 - 1.83)
+
+[3] INTRINSIC RELATIVISTIC KINEMATICS & JET GEOMETRY
+----------------------------------------------------------------------
+Assumed Distance (D)              : 9.4 +/- 1.0 kpc
+Derived beta * cos(theta)         :   0.2226 + 0.1671 - 0.0877 (1-sigma: + 0.0675 - 0.0709)
+Intrinsic Jet Speed (beta = v/c)  :   0.5616 + 0.2548 - 0.1824 c (1-sigma: + 0.1028 - 0.1426)
+Lorentz Factor (Gamma)            :   1.2049 + 0.3612 - 0.1411 (1-sigma: + 0.0854 - 0.1223)
+Proper 4-Velocity (Gamma * Beta)  :   0.6722 + 0.5449 - 0.2930 (1-sigma: + 0.1574 - 0.2385)
+Jet Inclination Angle (theta)     :    65.86 + 8.74 - 10.27 deg (1-sigma: + 5.82 - 5.31)
+Approaching Doppler Factor (delta_a): 1.0658 + 0.1591 - 0.1852 (1-sigma: + 0.0872 - 0.0784)
+Receding Doppler Factor (delta_r) :   0.6803 + 0.1216 - 0.2203 (1-sigma: + 0.1048 - 0.0770)
+Kinematic Doppler Factor Ratio    :     1.57 + 0.65 - 0.30 (1-sigma: + 0.23 - 0.23)
+True Intrinsic Angular Velocity   : 9.3852e-03 + 3.6986e-03 - 2.7712e-03 arcsec/day (1-sigma: + 1.5514e-03 - 2.0453e-03)
+Maximum Physical Distance (D_max) :    17.95 + 5.91 - 6.69 kpc (1-sigma: + 3.96 - 3.68)
+
+[4] TERMINAL STALL & EXPONENTIAL RELAXATION KINEMATICS
+----------------------------------------------------------------------
+Receding Terminal Stall Radius (r_max,r)   : 15.2772 + 4.7224 - 6.5079 arcsec (1-sigma: + 4.7224 - 2.3465)
+Approaching Terminal Stall Radius (r_max,a): 9.4761 + 8.3061 - 5.5127 arcsec (1-sigma: + 3.5404 - 5.4053)
+Receding Relaxation Timescale (tau_r)      : 1985.3 + 1013.8 - 1193.1 days (1-sigma: + 707.8 - 661.8)
+Approaching Relaxation Timescale (tau_a)   : 798.9 + 1028.7 - 679.6 days (1-sigma: + 456.4 - 650.3)
+Final Epoch Receding Speed (mu_end,r)      : 6.0464e-03 + 1.6268e-03 - 1.4828e-03 arcsec/day
+Final Epoch Receding Apparent Speed        : 0.3275 + 0.1060 - 0.0976 c
+Final Epoch Approaching Speed (mu_end,a)    : 6.7706e-03 + 2.1406e-03 - 2.5768e-03 arcsec/day
+Final Epoch Approaching Apparent Speed      : 0.3624 + 0.1413 - 0.1502 c
+======================================================================

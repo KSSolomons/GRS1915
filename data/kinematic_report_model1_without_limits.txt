@@ -1,0 +1,56 @@
+======================================================================================
+                    QUANTITATIVE MODEL SELECTION (BIC / AIC SUITE)                    
+======================================================================================
+Model Description                                      k    ln(L)      BIC        Delta BIC 
+--------------------------------------------------------------------------------------
+Ballistic (Free Tej)                                   8    -216.16    463.30     0.00      
+Ballistic (Anchored Tej=60600±100)                     8    -216.68    464.32     1.02      
+Piecewise Deceleration (Free Tej)                      12   -214.48    475.42     12.12     
+Piecewise Deceleration (Anchored Tej=60600±100)        12   -214.46    475.37     12.07     
+--------------------------------------------------------------------------------------
+--> ADOPTED BEST MODEL: Model 1 (Ballistic (Free Tej))
+======================================================================================
+
+======================================================================
+     GRS 1915+105 RELATIVISTIC KINEMATIC REPORT (WITHOUT LIMITS)      
+======================================================================
+Statistically Preferred Model : Model 1 (Ballistic (Free Tej))
+Data Points Used (N_data)     : 48
+Optimized BIC                 : 463.30
+Credible Interval Bounds      : 90% HDI (primary) & 68.3% HDI (1-sigma equivalent)
+Physical Velocity Constraint  : Unconstrained (D = 9.4 +/- 1.0 kpc, no artificial capping)
+
+[1] EJECTION PARAMETERS
+----------------------------------------------------------------------
+Extrapolated Launch Time (T_ej): MJD 60362.97 + 113.17 - 138.92 (1-sigma: + 87.34 - 64.84)
+Core Offset RA (x_c)           : -0.1914 + 0.0018 - 0.0018 arcsec (1-sigma: + 0.0010 - 0.0011)
+Core Offset Dec (y_c)          : -0.2985 + 0.0021 - 0.0020 arcsec (1-sigma: + 0.0013 - 0.0012)
+
+[2] APPARENT PROPER MOTIONS & JET AXIS
+----------------------------------------------------------------------
+Receding Lobe (North) Speed (mu_r): 5.2573e-03 + 1.3171e-03 - 1.3038e-03 arcsec/day (1-sigma: + 8.3968e-04 - 8.0972e-04)
+Receding Apparent Speed (beta_app,r)            : 0.2837 + 0.0884 - 0.0856 c (1-sigma: + 0.0503 - 0.0565)
+Approaching Lobe (South) Speed (mu_a): 7.2657e-03 + 1.8402e-03 - 1.7915e-03 arcsec/day (1-sigma: + 1.0898e-03 - 1.1978e-03)
+Approaching Apparent Speed (beta_app,a)         : 0.3920 + 0.1216 - 0.1193 c (1-sigma: + 0.0694 - 0.0786)
+Northern Position Angle (PA_n)    :   -42.88 + 4.36 - 4.21 deg (1-sigma: + 2.59 - 2.45)
+Standard Astronomical PA_n (EoN)  :   137.12 deg
+Southern Position Angle (PA_s)    :   -41.32 + 4.43 - 4.29 deg (1-sigma: + 2.49 - 2.59)
+Standard Astronomical PA_s (EoN)  :   138.68 deg
+Average Position Angle (PA_avg)   :   -42.12 + 3.18 - 2.98 deg (1-sigma: + 1.85 - 1.78)
+Standard Astronomical PA_avg (EoN):   137.88 + 3.18 - 2.98 deg (1-sigma: + 1.85 - 1.78)
+Scatter Angle (theta_scatter)     :     5.48 + 3.09 - 2.58 deg (1-sigma: + 1.46 - 1.84)
+
+[3] INTRINSIC RELATIVISTIC KINEMATICS & JET GEOMETRY
+----------------------------------------------------------------------
+Assumed Distance (D)              : 9.4 +/- 1.0 kpc
+Derived beta * cos(theta)         :   0.1603 + 0.0150 - 0.0152 (1-sigma: + 0.0093 - 0.0092)
+Intrinsic Jet Speed (beta = v/c)  :   0.3662 + 0.0923 - 0.0883 c (1-sigma: + 0.0510 - 0.0602)
+Lorentz Factor (Gamma)            :   1.0746 + 0.0455 - 0.0370 (1-sigma: + 0.0197 - 0.0290)
+Proper 4-Velocity (Gamma * Beta)  :   0.3935 + 0.1198 - 0.1064 (1-sigma: + 0.0607 - 0.0765)
+Jet Inclination Angle (theta)     :    64.07 + 6.69 - 7.71 deg (1-sigma: + 4.73 - 4.02)
+Approaching Doppler Factor (delta_a): 1.1075 + 0.0437 - 0.0489 (1-sigma: + 0.0297 - 0.0252)
+Receding Doppler Factor (delta_r) :   0.8015 + 0.0318 - 0.0362 (1-sigma: + 0.0229 - 0.0175)
+Kinematic Doppler Factor Ratio    :     1.38 + 0.04 - 0.04 (1-sigma: + 0.02 - 0.03)
+True Intrinsic Angular Velocity   : 6.1000e-03 + 1.5205e-03 - 1.5152e-03 arcsec/day (1-sigma: + 9.2711e-04 - 9.8595e-04)
+Maximum Physical Distance (D_max) :    28.02 + 7.85 - 6.43 kpc (1-sigma: + 3.69 - 4.92)
+======================================================================

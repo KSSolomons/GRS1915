@@ -1,0 +1,78 @@
+======================================================================================
+                    QUANTITATIVE MODEL SELECTION (BIC / AIC SUITE)                    
+======================================================================================
+Model Description                                      k    ln(L)      BIC        Delta BIC 
+--------------------------------------------------------------------------------------
+Ballistic (Free Tej)                                   8    -221.11    473.19     0.00      
+Ballistic (Anchored Tej=60600±100)                     8    -221.12    473.21     0.02      
+Piecewise Deceleration (Free Tej)                      12   -217.90    482.26     9.07      
+Piecewise Deceleration (Anchored Tej=60600±100)        12   -214.99    476.43     3.24      
+--------------------------------------------------------------------------------------
+--> ADOPTED BEST MODEL: Model 4 (Piecewise Deceleration (Anchored Tej=60600±100))
+======================================================================================
+
+======================================================================
+       GRS 1915+105 RELATIVISTIC KINEMATIC REPORT (WITH LIMITS)       
+======================================================================
+Statistically Preferred Model : Model 4 (Piecewise Deceleration (Anchored Tej=60600±100))
+Data Points Used (N_data)     : 48
+Optimized BIC                 : 476.43
+Credible Interval Bounds      : 90% HDI (primary) & 68.3% HDI (1-sigma equivalent)
+Physical Velocity Constraint  : Unconstrained (D = 9.4 +/- 1.0 kpc, no artificial capping)
+Upper Limit Penalty Sigma     : 0.050 arcsec
+
+[1] EJECTION PARAMETERS
+----------------------------------------------------------------------
+Extrapolated Launch Time (T_ej): MJD 60645.47 + 66.83 - 68.43 (1-sigma: + 55.55 - 36.67) (Anchored 60600±100)
+Core Offset RA (x_c)           : -0.1915 + 0.0018 - 0.0018 arcsec (1-sigma: + 0.0011 - 0.0011)
+Core Offset Dec (y_c)          : -0.2985 + 0.0021 - 0.0020 arcsec (1-sigma: + 0.0012 - 0.0013)
+
+[2] APPARENT PROPER MOTIONS & JET AXIS
+----------------------------------------------------------------------
+Receding Break Time (t_break,r) : MJD 60773.79 + 75.95 - 69.87 (1-sigma: + 49.17 - 41.92)
+Receding Break Dist (r_b,r)     : 1.995 + 0.589 - 0.688 arcsec (1-sigma: + 0.443 - 0.301)
+Approaching Break Time (t_break,a): MJD 60809.56 + 32.24 - 28.71 (1-sigma: + 21.13 - 18.89)
+Approaching Break Dist (r_b,a)  : 3.354 + 0.231 - 0.263 arcsec (1-sigma: + 0.167 - 0.134)
+Initial Receding Speed (mu_1,r) : 1.5523e-02 + 9.6935e-03 - 6.6137e-03 arcsec/day (1-sigma: + 3.4501e-03 - 5.8247e-03)
+Initial Receding Apparent Speed (beta_app,1r)   : 0.8409 + 0.5549 - 0.3836 c (1-sigma: + 0.2088 - 0.3262)
+Initial Approaching Speed (mu_1,a): 2.0358e-02 + 1.4017e-02 - 8.9237e-03 arcsec/day (1-sigma: + 5.5138e-03 - 7.6639e-03)
+Initial Approaching Apparent Speed (beta_app,1a) : 1.1053 + 0.8055 - 0.5203 c (1-sigma: + 0.3034 - 0.4487)
+Post-Break Receding Speed (mu_2,r): 7.3358e-03 + 2.2332e-03 - 2.2412e-03 arcsec/day (1-sigma: + 1.4029e-03 - 1.3891e-03)
+Post-Break Receding Apparent Speed (beta_app,2r) : 0.3944 + 0.1393 - 0.1434 c (1-sigma: + 0.0858 - 0.0875)
+Post-Break Approaching Speed (mu_2,a): 5.3920e-03 + 2.6634e-03 - 2.8309e-03 arcsec/day (1-sigma: + 1.6181e-03 - 1.7193e-03)
+Post-Break Approaching Apparent Speed (beta_app,2a): 0.2894 + 0.1556 - 0.1618 c (1-sigma: + 0.0943 - 0.0976)
+Receding Lobe (North) Speed (mu_r): 7.3358e-03 + 2.2332e-03 - 2.2412e-03 arcsec/day (1-sigma: + 1.4029e-03 - 1.3891e-03)
+Receding Apparent Speed (beta_app,r)            : 0.3944 + 0.1393 - 0.1434 c (1-sigma: + 0.0858 - 0.0875)
+Approaching Lobe (South) Speed (mu_a): 5.3920e-03 + 2.6634e-03 - 2.8309e-03 arcsec/day (1-sigma: + 1.6181e-03 - 1.7193e-03)
+Approaching Apparent Speed (beta_app,a)         : 0.2894 + 0.1556 - 0.1618 c (1-sigma: + 0.0943 - 0.0976)
+Northern Position Angle (PA_n)    :   -42.30 + 4.47 - 4.39 deg (1-sigma: + 2.57 - 2.58)
+Standard Astronomical PA_n (EoN)  :   137.70 deg
+Southern Position Angle (PA_s)    :   -41.58 + 4.52 - 4.27 deg (1-sigma: + 2.62 - 2.49)
+Standard Astronomical PA_s (EoN)  :   138.42 deg
+Average Position Angle (PA_avg)   :   -41.91 + 3.14 - 3.16 deg (1-sigma: + 1.78 - 1.82)
+Standard Astronomical PA_avg (EoN):   138.09 + 3.14 - 3.16 deg (1-sigma: + 1.78 - 1.82)
+Scatter Angle (theta_scatter)     :     5.54 + 3.13 - 2.59 deg (1-sigma: + 1.41 - 1.94)
+
+[3] INTRINSIC RELATIVISTIC KINEMATICS & JET GEOMETRY
+----------------------------------------------------------------------
+Assumed Distance (D)              : 9.4 +/- 1.0 kpc
+Derived beta * cos(theta)         :   0.1392 + 0.1028 - 0.1392 (1-sigma: + 0.0737 - 0.0962)
+Intrinsic Jet Speed (beta = v/c)  :   0.9666 + 0.6333 - 0.4177 c (1-sigma: + 0.2467 - 0.3631)
+Lorentz Factor (Gamma)            :   1.6320 + 1.6768 - 0.5140 (1-sigma: + 0.3590 - 0.4716)
+Proper 4-Velocity (Gamma * Beta)  :   1.2898 + 1.8937 - 0.7534 (1-sigma: + 0.4622 - 0.6601)
+Jet Inclination Angle (theta)     :    81.95 + 8.05 - 7.11 deg (1-sigma: + 8.05 - 3.01)
+Approaching Doppler Factor (delta_a): 0.7009 + 0.3053 - 0.3766 (1-sigma: + 0.2445 - 0.1734)
+Receding Doppler Factor (delta_r) :   0.5431 + 0.2229 - 0.3060 (1-sigma: + 0.1820 - 0.1370)
+Kinematic Doppler Factor Ratio    :     1.32 + 0.31 - 0.32 (1-sigma: + 0.11 - 0.32)
+True Intrinsic Angular Velocity   : 1.7593e-02 + 1.1038e-02 - 7.1301e-03 arcsec/day (1-sigma: + 3.9855e-03 - 6.7001e-03)
+Maximum Physical Distance (D_max) :     9.72 + 4.87 - 4.59 kpc (1-sigma: + 2.58 - 3.75)
+
+[4] POST-BREAK DIFFERENTIAL DECELERATION KINEMATICS
+----------------------------------------------------------------------
+Approaching Post-Break Speed (beta_2,a): 0.2816 + 0.1481 - 0.1496 c (1-sigma: + 0.0904 - 0.0894)
+Approaching Post-Break Gamma (Gamma_2,a): 1.0422 + 0.0500 - 0.0403 (1-sigma: + 0.0211 - 0.0319)
+Approaching Deceleration Ratio (b2/b1) :   0.28 + 0.23 - 0.18 (1-sigma: + 0.11 - 0.14)
+Receding Post-Break Speed (beta_2,r)   : 0.4236 + 0.1650 - 0.1636 c (1-sigma: + 0.0931 - 0.1069)
+Receding Post-Break Gamma (Gamma_2,r)  : 1.1040 + 0.1113 - 0.0795 (1-sigma: + 0.0409 - 0.0654)
+Receding Deceleration Ratio (b2/b1)    :   0.43 + 0.30 - 0.25 (1-sigma: + 0.15 - 0.20)
+======================================================================

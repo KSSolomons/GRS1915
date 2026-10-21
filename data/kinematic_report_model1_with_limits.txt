@@ -1,0 +1,59 @@
+======================================================================================
+                    QUANTITATIVE MODEL SELECTION (BIC / AIC SUITE)                    
+======================================================================================
+Model Description                                      k    ln(L)      BIC        Delta BIC 
+--------------------------------------------------------------------------------------
+Ballistic (Free Tej)                                   8    -221.11    473.19     3.69      
+Ballistic (Anchored Tej=60600)                         7    -231.94    490.97     21.47     
+Piecewise Deceleration (Free Tej)                      12   -217.90    482.26     12.76     
+Piecewise Deceleration (Anchored Tej=60600)            11   -223.20    488.99     19.49     
+Smooth Continuous Deceleration (Free Tej)              10   -215.40    469.50     0.00      
+Smooth Continuous Deceleration (Anchored Tej=60600)    9    -217.75    470.34     0.84      
+--------------------------------------------------------------------------------------
+--> ADOPTED BEST MODEL: Model 1 (Ballistic (Free Tej))
+======================================================================================
+
+======================================================================
+       GRS 1915+105 RELATIVISTIC KINEMATIC REPORT (WITH LIMITS)       
+======================================================================
+Statistically Preferred Model : Model 1 (Ballistic (Free Tej))
+Data Points Used (N_data)     : 48
+Optimized BIC                 : 473.19
+Credible Interval Bounds      : 90% HDI (primary) & 68.3% HDI (1-sigma equivalent)
+Physical Velocity Constraint  : Unconstrained (D = 9.4 +/- 1.0 kpc, no artificial capping)
+Upper Limit Penalty Sigma     : 0.050 arcsec
+
+[1] EJECTION PARAMETERS
+----------------------------------------------------------------------
+Extrapolated Launch Time (T_ej): MJD 60518.08 + 28.87 - 31.35 (1-sigma: + 18.60 - 17.27)
+Core Offset RA (x_c)           : -0.1914 + 0.0018 - 0.0019 arcsec (1-sigma: + 0.0011 - 0.0011)
+Core Offset Dec (y_c)          : -0.2985 + 0.0021 - 0.0021 arcsec (1-sigma: + 0.0012 - 0.0013)
+
+[2] APPARENT PROPER MOTIONS & JET AXIS
+----------------------------------------------------------------------
+Receding Lobe (North) Speed (mu_r): 7.6335e-03 + 6.9323e-04 - 6.8821e-04 arcsec/day (1-sigma: + 4.0698e-04 - 4.2218e-04)
+Receding Apparent Speed (beta_app,r)            : 0.4139 + 0.0822 - 0.0814 c (1-sigma: + 0.0480 - 0.0513)
+Approaching Lobe (South) Speed (mu_a): 1.0487e-02 + 1.0577e-03 - 1.0274e-03 arcsec/day (1-sigma: + 6.2278e-04 - 6.3454e-04)
+Approaching Apparent Speed (beta_app,a)         : 0.5683 + 0.1173 - 0.1123 c (1-sigma: + 0.0689 - 0.0706)
+Northern Position Angle (PA_n)    :   -42.32 + 4.44 - 4.36 deg (1-sigma: + 2.49 - 2.66)
+Standard Astronomical PA_n (EoN)  :   137.68 deg
+Southern Position Angle (PA_s)    :   -40.54 + 5.41 - 4.70 deg (1-sigma: + 2.70 - 2.99)
+Standard Astronomical PA_s (EoN)  :   139.46 deg
+Average Position Angle (PA_avg)   :   -41.42 + 3.59 - 3.22 deg (1-sigma: + 1.76 - 2.15)
+Standard Astronomical PA_avg (EoN):   138.58 + 3.59 - 3.22 deg (1-sigma: + 1.76 - 2.15)
+Scatter Angle (theta_scatter)     :     5.61 + 3.23 - 2.66 deg (1-sigma: + 1.42 - 1.96)
+
+[3] INTRINSIC RELATIVISTIC KINEMATICS & JET GEOMETRY
+----------------------------------------------------------------------
+Physical Distance (D <= D_max)    :     9.40 + 1.63 - 1.66 kpc (prior: 9.4 +/- 1.0 kpc, 1-sigma: + 1.01 - 0.99)
+Derived beta * cos(theta)         :   0.1572 + 0.0152 - 0.0155 (1-sigma: + 0.0095 - 0.0091)
+Intrinsic Jet Speed (beta = v/c)  :   0.5042 + 0.0927 - 0.0895 c (1-sigma: + 0.0558 - 0.0550)
+Lorentz Factor (Gamma)            :   1.1579 + 0.0769 - 0.0664 (1-sigma: + 0.0355 - 0.0495)
+Proper 4-Velocity (Gamma * Beta)  :   0.5838 + 0.1463 - 0.1396 (1-sigma: + 0.0800 - 0.0914)
+Jet Inclination Angle (theta)     :    71.85 + 3.45 - 3.71 deg (1-sigma: + 2.30 - 2.00)
+Approaching Doppler Factor (delta_a): 1.0244 + 0.0595 - 0.0660 (1-sigma: + 0.0413 - 0.0339)
+Receding Doppler Factor (delta_r) :   0.7462 + 0.0474 - 0.0504 (1-sigma: + 0.0316 - 0.0272)
+Kinematic Doppler Factor Ratio    :     1.37 + 0.04 - 0.04 (1-sigma: + 0.03 - 0.03)
+True Intrinsic Angular Velocity   : 8.8351e-03 + 8.2273e-04 - 8.2079e-04 arcsec/day (1-sigma: + 4.9893e-04 - 4.8943e-04)
+Maximum Physical Distance (D_max) :    19.35 + 1.88 - 1.76 kpc (1-sigma: + 1.04 - 1.13)
+======================================================================
