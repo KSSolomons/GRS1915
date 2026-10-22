@@ -24,3 +24,12 @@ Thumbs.db
 .idea/
 .vscode/
 scripts_txt/
+
+# Unpublished paper drafts
+docs/new_main*
+scratch/new_main*
+
+# Large radio data (FITS images, clean/peel masks) - kept locally only
+*.fits
+FITS/
+masks/
