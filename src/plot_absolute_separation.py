@@ -1,11 +1,15 @@
 import argparse
 import os
+import sys
 
 import matplotlib
 import numpy as np
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from epoch_limits import blending_limits
 
 plt.rcParams["font.family"] = "serif"
 plt.rcParams["mathtext.fontset"] = "dejavuserif"
@@ -526,26 +530,13 @@ def plot_absolute_separation(
 
     # Upper Limits (only drawn if show_limits is True)
     if show_limits:
-        # S1, S2 (60686.2525, 60708.2596) are commented out because they are invisible against the background noise
-        # Spatial upper limits based on synthesized beam FWHM along jet axis
-        # Positional accuracy error bar sigma_pos = theta_beam / (2 * SNR)
-        # Block 3 (theta_beam = 3.843") -> sigma_pos = 0.640 arcsec (at 3-sigma limit)
-        # Block 4 (theta_beam = 3.131") -> sigma_pos = 0.522 arcsec (at 3-sigma limit)
-        ul_sigma_pos = [0.640, 0.522]
+        # Blending limits of the blocks flagged "in_fit" in epoch_limits.py (projected beam FWHM
+        # along the jet axis), with error bars sigma_pos = theta_beam / 6 (positional accuracy at 3 sigma)
+        ul_mjd, ul_r, ul_sigma_pos = blending_limits()
 
         ax_sep.errorbar(
-            [
-                # 60686.2525 - 60000,
-                # 60708.2596 - 60000,
-                60736.11478 - 60000,
-                60758.0668287 - 60000,
-            ],
-            [
-                # 2.446, 
-                # 2.748, 
-                2.423, 
-                2.460
-            ],
+            ul_mjd - 60000,
+            ul_r,
             yerr=ul_sigma_pos,
             uplims=True,
             fmt="none",
@@ -557,18 +548,8 @@ def plot_absolute_separation(
             label="Upper Limits",
         )
         ax_sep.errorbar(
-            [
-                # 60686.2525 - 60000,
-                # 60708.2596 - 60000,
-                60736.11478 - 60000,
-                60758.0668287 - 60000,
-            ],
-            [
-                # -2.446, 
-                # -2.748, 
-                -2.423, 
-                -2.460
-            ],
+            ul_mjd - 60000,
+            -ul_r,
             yerr=ul_sigma_pos,
             lolims=True,
             fmt="none",

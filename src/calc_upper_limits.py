@@ -31,9 +31,13 @@ Methodology:
 """
 
 import os
+import sys
 
 import matplotlib
 import numpy as np
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from epoch_limits import JET_PA_DEG, UPPER_LIMIT_BLOCKS, beam_fwhm_along_pa
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -42,41 +46,6 @@ import matplotlib.pyplot as plt
 plt.rcParams["font.family"] = "serif"
 plt.rcParams["mathtext.fontset"] = "dejavuserif"
 plt.rcParams["font.size"] = 11
-
-
-def beam_fwhm_along_pa(bmaj, bmin, bpa_deg, target_pa_deg):
-    """
-    Computes the effective beam FWHM along a specific Position Angle (target_pa_deg).
-
-    Parameters:
-    -----------
-    bmaj : float
-        Major axis FWHM (arcsec).
-    bmin : float
-        Minor axis FWHM (arcsec).
-    bpa_deg : float
-        Beam Position Angle (degrees, East of North).
-    target_pa_deg : float
-        Target Position Angle along which to project (degrees, East of North).
-
-    Returns:
-    --------
-    theta_proj : float
-        Projected beam FWHM along target_pa (arcsec).
-    delta_phi_deg : float
-        Absolute angle between target PA and beam major axis (degrees).
-    """
-    delta_phi_rad = np.radians(target_pa_deg - bpa_deg)
-    cos_phi = np.cos(delta_phi_rad)
-    sin_phi = np.sin(delta_phi_rad)
-
-    # Projected width of an ellipse
-    theta_proj = np.sqrt((bmaj * cos_phi) ** 2 + (bmin * sin_phi) ** 2)
-    delta_phi_deg = np.degrees(np.abs(delta_phi_rad)) % 180.0
-    if delta_phi_deg > 90.0:
-        delta_phi_deg = 180.0 - delta_phi_deg
-
-    return theta_proj, delta_phi_deg
 
 
 def plot_beam_and_limits(
@@ -327,64 +296,12 @@ def process_block(
     }
 
 
-def main():
-    blocks = [
-        {
-            "name": "Block 1 (S1)",
-            "bmaj_deg": 1.261684512901e-03,
-            "bmin_deg": 6.778116366529e-04,
-            "bpa_deg": 45.14841404913,
-            "mjd_obs": 60686.2525,
-            "rms_jy": 4.831714277465e-06,
-            "rms_peeled_jy": None,  # Fill with 3GC peeled RMS
-            "s_jet_jy": 0.00984,    # ~9.8 mJy: mean of NW/SE exponential fade fits to Epochs 5-11
-            "jet_pa_deg": 137.6,
-            "t_ej": 60471.77,
-            "output_path": "figures/block1_upper_limit_beam.png",
-        },
-        {
-            "name": "Block 2 (S2)",
-            "bmaj_deg": 1.105131853119e-03,
-            "bmin_deg": 7.246734168800e-04,
-            "bpa_deg": 30.86987498950,
-            "mjd_obs": 60708.2596296,
-            "rms_jy": 4.831714277465e-06,
-            "rms_peeled_jy": 1.061756531718e-04,  # Measured 3GC peeled RMS: 106.2 uJy/beam
-            "s_jet_jy": 0.00671,    # ~6.7 mJy: mean of NW/SE exponential fade fits to Epochs 5-11
-            "jet_pa_deg": 137.6,
-            "t_ej": 60471.77,
-            "output_path": "figures/block2_upper_limit_beam.png",
-        },
-        {
-            "name": "Block 3",
-            "bmaj_deg": 1.766882585384e-03,
-            "bmin_deg": 6.449474413115e-04,
-            "bpa_deg": 40.88001696354,
-            "mjd_obs": 60736.11478,
-            "rms_jy": 4.831714277465e-06,
-            "rms_peeled_jy": 3.100985734235e-04,  # Measured 3GC peeled RMS: 310.1 uJy/beam
-            "s_jet_jy": 0.00413,    # ~4.1 mJy: mean of NW/SE exponential fade fits to Epochs 5-11
-            "jet_pa_deg": 137.6,
-            "t_ej": 60471.77,
-            "output_path": "figures/block3_upper_limit_beam.png",
-        },
-        {
-            "name": "Block 4",
-            "bmaj_deg": 1.118431641616e-03,
-            "bmin_deg": 6.765129150517e-04,
-            "bpa_deg": 41.41138047977,
-            "mjd_obs": 60758.0668287,
-            "rms_jy": 4.831714277465e-06,
-            "rms_peeled_jy": None,  # Fill with 3GC peeled RMS
-            "s_jet_jy": 0.00283,    # ~2.8 mJy: mean of NW/SE exponential fade fits to Epochs 5-11
-            "jet_pa_deg": 137.6,
-            "t_ej": 60471.77,
-            "output_path": "figures/block4_upper_limit_beam.png",
-        },
-    ]
+T_EJ_REFERENCE = 60471.77  # reference launch epoch for the printed proper-motion limits
 
+
+def main():
     results = []
-    for block in blocks:
+    for i, block in enumerate(UPPER_LIMIT_BLOCKS, start=1):
         res = process_block(
             block["name"],
             block["bmaj_deg"],
@@ -392,9 +309,9 @@ def main():
             block["bpa_deg"],
             block["mjd_obs"],
             block["rms_jy"],
-            block["jet_pa_deg"],
-            block["t_ej"],
-            block["output_path"],
+            JET_PA_DEG,
+            T_EJ_REFERENCE,
+            f"figures/block{i}_upper_limit_beam.png",
             rms_peeled_jy=block.get("rms_peeled_jy"),
             s_jet_jy=block.get("s_jet_jy"),
         )

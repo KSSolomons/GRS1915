@@ -1,6 +1,9 @@
-import os, glob, re, datetime
+import os, glob, re, datetime, sys
 import numpy as np
 from scipy.optimize import curve_fit
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "src"))
+from epoch_limits import EJECTION_CAMPAIGN_START
 
 def exp_model(t, a, b):
     return a * np.exp(b * t)
@@ -58,7 +61,7 @@ for f in files:
         
         if 288.7979 < c["ra_deg"] < 288.7982:
             pass # core
-        elif mjd < 60600.0:
+        elif mjd < EJECTION_CAMPAIGN_START:
             pass # pre-2025 components belong to older ejecta
         elif dy > 0:
             if ts != 1764664923:

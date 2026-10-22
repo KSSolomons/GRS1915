@@ -26,6 +26,11 @@ import argparse
 import subprocess
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from epoch_limits import EJECTION_CAMPAIGN_START, blending_limits
+
+UL_MJD, UL_R, _ = blending_limits()
+
 # =========================================================================
 # RUN CONFIGURATION (Edit N_STEPS directly here when running from script)
 # =========================================================================
@@ -281,8 +286,8 @@ s_data = np.array(s_data)
 # Keep only the 2025 campaign jets (older pre-2025 ejecta are a separate event)
 n_data = n_data[np.argsort(n_data[:, 0])]
 s_data = s_data[np.argsort(s_data[:, 0])]
-n_data = n_data[n_data[:, 0] > 60600.0]
-s_data = s_data[s_data[:, 0] > 60600.0]
+n_data = n_data[n_data[:, 0] > EJECTION_CAMPAIGN_START]
+s_data = s_data[s_data[:, 0] > EJECTION_CAMPAIGN_START]
 num_obs_total = 2 * len(core_data) + 2 * len(n_data) + 2 * len(s_data)
 
 print(
@@ -403,8 +408,7 @@ def calc_log_likelihood(
 
     # --- UPPER LIMITS LIKELIHOOD PENALTY ---
     if include_limits:
-        ul_mjd = np.array([60736.11478, 60758.0668])
-        ul_r = np.array([2.423, 2.460])
+        ul_mjd, ul_r = UL_MJD, UL_R
         model_r_n = calc_trajectory(ul_mjd, t_ej, v1_n, v2_n, tb_n)
         model_r_s = np.abs(calc_trajectory(ul_mjd, t_ej, v1_s, v2_s, tb_s))
 
@@ -495,8 +499,7 @@ def calc_log_likelihood_smooth(
 
     # --- UPPER LIMITS LIKELIHOOD PENALTY ---
     if include_limits:
-        ul_mjd = np.array([60736.11478, 60758.0668])
-        ul_r = np.array([2.423, 2.460])
+        ul_mjd, ul_r = UL_MJD, UL_R
         model_r_n = calc_trajectory_smooth(ul_mjd, t_ej, v0_n, tau_n)
         model_r_s = np.abs(calc_trajectory_smooth(ul_mjd, t_ej, v0_s, tau_s))
 

@@ -9,7 +9,11 @@ from matplotlib.ticker import MultipleLocator
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from matplotlib.patches import Arc
 from astropy.time import Time
+import sys
 import numpy as np
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from epoch_limits import blending_limits
 
 from src.plot_absolute_separation import (
     unpack_params_abs,
@@ -258,10 +262,10 @@ def make_combined_figure(out_fig="figures/combined_kinematics_fit_plot.png"):
         ax.scatter(s_mjd, s_perp_opt, color="lightgray", edgecolors="gray", marker="v", s=45, zorder=2.2, label=r"$\theta_\perp^S$")
 
         # Non-detection Upper limits with positional accuracy sigma_pos = theta_beam / (2 * SNR)
-        ul_sigma_pos = [0.640, 0.522]
-        ax.errorbar([60736.11478, 60758.0668287], [2.423, 2.460], yerr=ul_sigma_pos,
+        ul_mjd, ul_r, ul_sigma_pos = blending_limits()
+        ax.errorbar(ul_mjd, ul_r, yerr=ul_sigma_pos,
                     uplims=True, fmt="none", color="black", ecolor="black", capsize=3, elinewidth=1.2, zorder=5, label="Upper Limits")
-        ax.errorbar([60736.11478, 60758.0668287], [-2.423, -2.460], yerr=ul_sigma_pos,
+        ax.errorbar(ul_mjd, -ul_r, yerr=ul_sigma_pos,
                     lolims=True, fmt="none", color="black", ecolor="black", capsize=3, elinewidth=1.2, zorder=5)
 
         ax.set_xlim(t_start, t_end)
