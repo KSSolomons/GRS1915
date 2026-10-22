@@ -2,15 +2,21 @@
 """
 In-band spectral index per epoch for the MeerKAT monitoring of GRS 1915+105.
 
-A stripped-down relative of getflux_MK_channels.py, intended to be run over the
-whole monitoring archive rather than over the four DDT blocks. It fits the
-per-channel images of each observation, then fits a single power law across the
-band, and writes one row per epoch. There is no cross-band or joint fitting,
-since the monitoring is L-band throughout.
+A stripped-down relative of getflux_MK_channels.py. It fits the per-channel
+images of each observation, then fits a single power law across the band, and
+writes one row per epoch. There is no cross-band or joint fitting: the JetKAT
+campaign is S-band (2.68-3.44 GHz in the channel images) throughout.
+
+What alpha describes: the core fit is a beam-shaped Gaussian at the catalogue
+position, so in Epochs 1-4, where the ejecta are blended with the core, alpha is
+that of the core and ejecta together, and from Epoch 5 it is that of the core.
+With LOBE_POSITIONS_FILE set (see below) the resolved lobes are fitted at the
+same time as extra fixed-position components, which removes their flux from the
+core region and gives each lobe its own spectral index.
 
 Run inside CASA:
 
-    CASA <1>: execfile('getflux_MK_inband_alpha.py')
+    CASA <1>: execfile('get_alpha.py')
 
 Orchestration
 -------------
@@ -70,14 +76,28 @@ multiplicative factor common to every channel of a band, hence it cancels
 exactly in an in-band spectral index and no systematic term is applied here.
 
 Expect alpha to be useful only for the brighter epochs. Splitting an
-observation into N channels raises the per-channel rms by sqrt(N), and for nine
-channels across the L band the uncertainty is roughly
+observation into N channels raises the per-channel rms by sqrt(N). The lever arm
+of the S-band channels (2.68-3.34 GHz, ln(nu_max/nu_min) = 0.22) is shorter than
+at L-band, so for seven channels the uncertainty is roughly
 
-    sigma_alpha ~ 1.7 / (S/N per channel) ~ 5 / (S/N of the band-averaged image)
+    sigma_alpha ~ 5 / (S/N per channel) ~ 13 / (S/N of the band-averaged image)
 
-so about 0.05 for an epoch detected at 100 sigma, 0.17 at 30 sigma and 0.5 at
-10 sigma. The output carries chi2/dof and a quality flag to make filtering
-straightforward.
+so about 0.13 for a component detected at 100 sigma, 0.45 at 30 sigma and 1.3 at
+10 sigma (this matches the formal errors of the core fits). For the lobes (MFS
+S/N 24-43 in Epochs 6-7, 12-17 in Epoch 8) a single epoch gives sigma_alpha of
+roughly 0.3-1, so the weighted mean over epochs printed for each lobe, about 0.25
+per lobe, is the useful number. The output carries chi2/dof and a quality flag
+to make filtering straightforward.
+
+Lobe components
+---------------
+LOBE_POSITIONS_FILE lists, per scheduling block, the positions of the resolved
+lobes from the MFS fits (written by make_lobe_positions.py). For an epoch listed
+there, every channel image is fitted with the core plus one beam-shaped Gaussian
+per lobe, the lobes held at their listed positions, and the fit region is
+enlarged to cover them. The lobe spectra are written to OUTPUT_LOBES; the core
+rows of OUTPUT_EPOCHS keep their format. Set LOBE_POSITIONS_FILE = None to
+reproduce the core-only fits.
 
 Author: prepared for S. Motta, 2026-08-02.
 """
@@ -155,6 +175,15 @@ RESCALE_BY_CHI2 = True
 OUTPUT_EPOCHS   = 'inband_alpha.txt'
 OUTPUT_CHANNELS = 'inband_channel_flux.txt'
 
+# --- Lobe components ---------------------------------------------------------
+# Positions of the resolved lobes per scheduling block, from
+# make_lobe_positions.py. Epochs listed there are fitted with the core and the
+# lobes together; None (or a missing file) fits the core alone.
+LOBE_POSITIONS_FILE = 'lobe_positions.txt'
+OUTPUT_LOBES        = 'inband_alpha_lobes.txt'
+# Lobe spectra with sigma_alpha (scaled) below this enter the weighted mean.
+LOBE_MEAN_MAX_ERR   = 1.0
+
 # ===========================================================================
 
 _CASA_ROUTES = {}
@@ -209,7 +238,7 @@ print("CASA components: " + ", ".join(
 if not CASA_READY:
     print("=" * 70)
     print("ERROR: missing CASA components: " + ", ".join(_MISSING))
-    print("       Run this inside CASA: execfile('getflux_MK_inband_alpha.py')")
+    print("       Run this inside CASA: execfile('get_alpha.py')")
     print("=" * 70)
 
 
@@ -357,8 +386,8 @@ def _rad_to_angle(value_rad, unit):
     raise ValueError("Unsupported angular unit: {!r}".format(unit))
 
 
-def _source_pixel(fits_file):
-    """Pixel coordinates of the source, via the image's own coordinate system.
+def _source_pixel(fits_file, ra=SOURCE_RA, dec=SOURCE_DEC):
+    """Pixel coordinates of a position (default: the source), via the image's own coordinate system.
 
     The full reference world vector is retrieved and only its direction
     elements replaced. Passing a bare [ra, dec, 0, 0] to topixel fails, because
@@ -387,7 +416,7 @@ def _source_pixel(fits_file):
         except Exception:
             u_ra = u_dec = 'rad'
 
-        direction = me.direction('J2000', SOURCE_RA, SOURCE_DEC)
+        direction = me.direction('J2000', ra, dec)
         ra_rad = float(direction['m0']['value'])
         dec_rad = float(direction['m1']['value'])
 
@@ -475,8 +504,56 @@ def _measure_local_noise(fits_file):
         return None, None
 
 
-def fit_image(fits_file, estimates_filename):
-    """Fit one channel or MFS image. Returns a dict, or None if unusable."""
+LOBES = {}   # {block ID: [(label, ra, dec), ...]}, filled by run()
+
+
+def _load_lobe_positions():
+    """Read LOBE_POSITIONS_FILE into {block ID: [(label, ra, dec), ...]}."""
+    if not LOBE_POSITIONS_FILE:
+        return {}
+    if not os.path.isfile(LOBE_POSITIONS_FILE):
+        print("NOTE: {} not found, so the core is fitted alone.".format(
+            LOBE_POSITIONS_FILE))
+        return {}
+    lobes = {}
+    with open(LOBE_POSITIONS_FILE) as fh:
+        for line in fh:
+            parts = line.split()
+            if not parts or parts[0].startswith('#') or len(parts) < 4:
+                continue
+            lobes.setdefault(parts[0], []).append(tuple(parts[1:4]))
+    print("Lobe positions for {} epoch(s) from {}".format(
+        len(lobes), LOBE_POSITIONS_FILE))
+    return lobes
+
+
+def _lobes_for(key):
+    """Lobes listed for an epoch key, which starts with the block ID."""
+    m = re.match(r'(\d{8,12})', key)
+    return LOBES.get(m.group(1), []) if m else []
+
+
+def _separation_arcsec(ra, dec):
+    """Angular separation of (ra, dec) from the source position, in arcsec."""
+    try:
+        sep = me.separation(me.direction('J2000', ra, dec),
+                            me.direction('J2000', SOURCE_RA, SOURCE_DEC))
+        value = float(sep['value'])
+        unit = sep.get('unit', 'deg')
+        return _rad_to_angle(_angle_to_rad(value, unit), 'arcsec')
+    except Exception:
+        return 0.0
+
+
+def fit_image(fits_file, estimates_filename, lobes=()):
+    """
+    Fit one channel or MFS image. Returns a dict, or None if unusable.
+
+    lobes = [(label, ra, dec), ...] are fitted together with the core as
+    beam-shaped Gaussians held at the given positions; their fluxes are returned
+    under 'lobes' as {label: (flux, err)}. A lobe that cannot be placed in the
+    image is left out of that image's fit.
+    """
     base = os.path.basename(fits_file)
     try:
         header = imhead(imagename=fits_file, mode='list')
@@ -493,17 +570,35 @@ def fit_image(fits_file, estimates_filename):
         if pixel is None:
             return None
 
+        # Core first (component0), then the lobes that can be placed, all with
+        # the shape held at the beam; the lobes are always held at their positions.
+        placed = []
+        for label, ra, dec in lobes:
+            lobe_pixel = _source_pixel(fits_file, ra, dec)
+            if lobe_pixel is None:
+                print("  {}: lobe {} could not be placed; fitted without it".format(
+                    base, label))
+                continue
+            placed.append((label, lobe_pixel, _separation_arcsec(ra, dec)))
+
+        line = ("{:.6f},{:.3f},{:.3f}, {:.4f}arcsec, {:.4f}arcsec, "
+                "{:.3f}deg, {}\n")
         with open(estimates_filename, 'w') as fh:
-            fh.write("{:.6f},{:.3f},{:.3f}, {:.4f}arcsec, {:.4f}arcsec, "
-                     "{:.3f}deg, {}\n".format(
-                         PEAK_ESTIMATE_JY, pixel[0], pixel[1], bmaj, bmin, bpa,
-                         'xyabp' if FIX_POSITION else 'abp'))
+            fh.write(line.format(PEAK_ESTIMATE_JY, pixel[0], pixel[1], bmaj,
+                                 bmin, bpa, 'xyabp' if FIX_POSITION else 'abp'))
+            for _label, lobe_pixel, _sep in placed:
+                fh.write(line.format(PEAK_ESTIMATE_JY * 0.1, lobe_pixel[0],
+                                     lobe_pixel[1], bmaj, bmin, bpa, 'xyabp'))
 
         rms, background = _measure_local_noise(fits_file)
         if not rms:
             return None   # a fully flagged channel gives no usable noise
 
+        # The region must hold every component plus background around it
         radius = (FIT_REGION_BEAM_MULTIPLE or 4.0) * max(bmaj, bmin)
+        if placed:
+            radius = max(radius, max(sep for _l, _p, sep in placed)
+                         + 2.0 * max(bmaj, bmin))
         region = ('ellipse[[{}, {}], [{:.4f}arcsec, {:.4f}arcsec], 90deg] '
                   'coord=J2000'.format(SOURCE_RA, SOURCE_DEC, radius, radius))
 
@@ -537,9 +632,19 @@ def fit_image(fits_file, estimates_filename):
                     pass
                 break
 
+        lobe_fluxes = {}
+        for i, (label, _p, _s) in enumerate(placed, start=1):
+            entry = result['results'].get('component{}'.format(i))
+            if not entry:
+                continue
+            l_flux = float(np.ravel(entry['flux']['value'])[0])
+            l_err = max(float(np.ravel(entry['flux']['error'])[0]), rms)
+            if np.isfinite(l_flux) and np.isfinite(l_err):
+                lobe_fluxes[label] = (l_flux, l_err)
+
         return dict(file=base, channel=channel_index(fits_file), nu_GHz=nu,
                     bmaj=bmaj, rms=rms, zero=zero, flux=flux, err=err,
-                    mjd=_mjd(header))
+                    mjd=_mjd(header), lobes=lobe_fluxes)
     except Exception:
         return None
     finally:
@@ -659,10 +764,39 @@ def fit_power_law(nu, S, sigma, nu0, max_iter=200):
 # Driver
 # ---------------------------------------------------------------------------
 
+def fit_lobes(key, chans, nu0, mjd):
+    """Power-law fits to the lobe fluxes of one epoch, one dict per lobe."""
+    out = []
+    labels = sorted(set(l for c in chans for l in c.get('lobes', {})))
+    for label in labels:
+        rows = [c for c in chans if label in c['lobes']]
+        if len(rows) < MIN_CHANNELS:
+            print("    lobe {:<3} only {} usable channel(s), not fitted".format(
+                label, len(rows)))
+            continue
+        nu = [c['nu_GHz'] for c in rows]
+        fit = fit_power_law(nu, [c['lobes'][label][0] for c in rows],
+                            [c['lobes'][label][1] for c in rows], nu0)
+        if fit is None:
+            print("    lobe {:<3} power-law fit failed ({})".format(
+                label, FIT_FAILURE_REASON or 'reason not recorded'))
+            continue
+        fit.update(epoch=key, label=label, mjd=mjd, nu_min=min(nu),
+                   nu_max=max(nu),
+                   channels=[(c['channel'], c['nu_GHz']) + c['lobes'][label]
+                             for c in rows])
+        print("    lobe {:<3} S0={:9.1f} uJy  alpha={:+.2f} +/- {:.2f}  "
+              "chi2/dof={:5.2f}".format(label, fit['S0'] * 1e6, fit['alpha'],
+                                        fit['alpha_err_scaled'], fit['chi2_red']))
+        out.append(fit)
+    return out
+
+
 def process_epoch(key, files, estimates):
     chans, mfs = [], None
+    lobes = _lobes_for(key)
     for path in files:
-        row = fit_image(path, estimates)
+        row = fit_image(path, estimates, lobes)
         if row is None:
             continue
         if row['channel'] is None:
@@ -672,7 +806,7 @@ def process_epoch(key, files, estimates):
     if len(chans) < MIN_CHANNELS:
         print("  {:<16} only {} usable channel(s), not fitted".format(
             key, len(chans)))
-        return None, chans
+        return None, chans, []
 
     nu = [c['nu_GHz'] for c in chans]
     nu0 = REF_FREQ_GHZ or math.sqrt(min(nu) * max(nu))
@@ -684,25 +818,76 @@ def process_epoch(key, files, estimates):
     if fit is None:
         print("  {:<16} power-law fit failed ({})".format(
             key, FIT_FAILURE_REASON or 'reason not recorded'))
-        return None, chans
+        return None, chans, fit_lobes(key, chans, nu0, mjd)
 
     flag = 'good' if fit['alpha_err_scaled'] < 0.2 else (
         'fair' if fit['alpha_err_scaled'] < 0.5 else 'poor')
     print("  {:<16} MJD {:9.3f}  N={:2d}  nu0={:.3f} GHz  S0={:9.1f} uJy  "
-          "alpha={:+.2f} +/- {:.2f}  chi2/dof={:5.2f}  [{}]".format(
+          "alpha={:+.2f} +/- {:.2f}  chi2/dof={:5.2f}  [{}]{}".format(
               key, mjd, fit['n'], fit['nu0'], fit['S0'] * 1e6, fit['alpha'],
-              fit['alpha_err_scaled'], fit['chi2_red'], flag))
+              fit['alpha_err_scaled'], fit['chi2_red'], flag,
+              "  (core + {} lobe(s))".format(len(lobes)) if lobes else ""))
     fit.update(epoch=key, mjd=mjd, snr_mfs=snr_mfs,
                mfs_flux=(mfs['flux'] if mfs else float('nan')),
                mfs_err=(mfs['err'] if mfs else float('nan')),
                nu_min=min(nu), nu_max=max(nu), flag=flag)
-    return fit, chans
+    return fit, chans, fit_lobes(key, chans, nu0, mjd)
+
+
+def write_lobe_outputs(lobe_fits):
+    """Per-lobe spectra, a weighted mean per lobe, and the channel fluxes behind them."""
+    lobe_fits = sorted(lobe_fits, key=lambda e: (e['mjd'], e['label']))
+    with open(OUTPUT_LOBES, 'w') as fh:
+        fh.write("# In-band spectral index of the resolved lobes, S(nu) = S0 (nu/nu0)^alpha\n")
+        fh.write("# Core and lobes fitted together in every channel image; lobes held at the positions in {}\n"
+                 .format(LOBE_POSITIONS_FILE))
+        fh.write("# N = north (receding), S = south (approaching). Err_a_sc rescales Err_a by sqrt(chi2/dof) "
+                 "where that exceeds one.\n")
+        fh.write("# {:<14} {:>5} {:>10} {:>3} {:>10} {:>9} {:>8} {:>9} {:>8} {:>7}\n".format(
+            "Epoch", "Lobe", "MJD", "N", "S0(uJy)", "S0err", "alpha", "Err_a",
+            "Err_a_sc", "chi2/dof"))
+        for e in lobe_fits:
+            fh.write("{:<16} {:>5} {:>10.4f} {:>3d} {:>10.2f} {:>9.2f} {:>8.3f} {:>9.3f} "
+                     "{:>8.3f} {:>7.2f}\n".format(
+                         e['epoch'], e['label'], e['mjd'], e['n'], e['S0'] * 1e6,
+                         e['S0_err'] * 1e6, e['alpha'], e['alpha_err'],
+                         e['alpha_err_scaled'], e['chi2_red']))
+
+        fh.write("\n# Weighted mean alpha per lobe over epochs with Err_a_sc < {:.2f}\n".format(
+            LOBE_MEAN_MAX_ERR))
+        for label in sorted(set(e['label'] for e in lobe_fits)):
+            use = [e for e in lobe_fits if e['label'] == label
+                   and e['alpha_err_scaled'] < LOBE_MEAN_MAX_ERR]
+            if not use:
+                continue
+            a = np.array([e['alpha'] for e in use])
+            w = 1.0 / np.array([e['alpha_err_scaled'] for e in use]) ** 2
+            mean, err = np.sum(a * w) / np.sum(w), 1.0 / math.sqrt(np.sum(w))
+            chi2_red = (np.sum(w * (a - mean) ** 2) / (len(a) - 1)
+                        if len(a) > 1 else float('nan'))
+            text = ("lobe {}: alpha = {:+.3f} +/- {:.3f} from {} epoch(s) ({}); "
+                    "chi2/dof about the mean = {:.2f}".format(
+                        label, mean, err, len(use),
+                        ", ".join(e['epoch'] for e in use), chi2_red))
+            fh.write("# " + text + "\n")
+            print(text)
+
+        fh.write("\n# Channel fluxes\n# {:<14} {:>5} {:>4} {:>10} {:>10} {:>10}\n".format(
+            "Epoch", "Lobe", "Chan", "Freq(GHz)", "S(uJy)", "err(uJy)"))
+        for e in lobe_fits:
+            for chan, nu, flux, err in e['channels']:
+                fh.write("{:<16} {:>5} {:>4d} {:>10.5f} {:>10.2f} {:>10.2f}\n".format(
+                    e['epoch'], e['label'], chan, nu, flux * 1e6, err * 1e6))
+    print("Wrote {} ({} lobe spectra)".format(OUTPUT_LOBES, len(lobe_fits)))
 
 
 def write_outputs(epochs, channels):
     epochs = sorted(epochs, key=lambda e: (not np.isfinite(e['mjd']), e['mjd']))
     with open(OUTPUT_EPOCHS, 'w') as fh:
         fh.write("# In-band spectral index per epoch, S(nu) = S0 (nu/nu0)^alpha\n")
+        if LOBES:
+            fh.write("# Epochs listed in {} were fitted with the core and the lobes together.\n"
+                     .format(LOBE_POSITIONS_FILE))
         fh.write("# Fitted in linear flux space over the channel images; all "
                  "channels retained, including marginal ones.\n")
         fh.write("# A flux-scale error is common to the channels of a band and "
@@ -783,18 +968,21 @@ def run(epochs_files):
         print("Nothing to process.")
         return []
     epochs_files = deduplicate(epochs_files)
+    global LOBES
+    LOBES = _load_lobe_positions()
     total = sum(len(v) for v in epochs_files.values())
     print("\nProcessing {} image(s) in {} epoch(s)\n".format(
         total, len(epochs_files)) + "-" * 100)
 
     estimates = os.path.abspath('estimates_inband.txt')
-    results, channels = [], {}
+    results, channels, lobe_results = [], {}, []
     for key in sorted(epochs_files):
-        fit, chans = process_epoch(key, epochs_files[key], estimates)
+        fit, chans, lobe_fits = process_epoch(key, epochs_files[key], estimates)
         if chans:
             channels[key] = chans
         if fit:
             results.append(fit)
+        lobe_results.extend(lobe_fits)
 
     print("-" * 100)
     if not results:
@@ -811,6 +999,8 @@ def run(epochs_files):
               "(scatter {:.3f})".format(np.sum(a * w) / np.sum(w),
                                         1.0 / math.sqrt(np.sum(w)), a.std()))
     write_outputs(results, channels)
+    if lobe_results:
+        write_lobe_outputs(lobe_results)
     return results
 
 
