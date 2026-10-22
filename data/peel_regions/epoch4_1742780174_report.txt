@@ -1,0 +1,35 @@
+Image: img_1742780174_sdp_l0_1024ch_GRS1915+105.ms_pcalmask-MFS-image.pbcor.fits
+Beam: 4.03" x 2.44" at 41.4 deg; theta_beam = 3.13"; pixel = 0.50"
+Fitted core: RA 288.797952 Dec 10.945418 deg, peak 364.10 mJy/beam
+Background rms (40-120" annulus, MAD): 44.7 uJy/beam
+Jet sectors: PA 138 (SE) and 318 (NW), +/-20 deg; threshold 5 x local rms
+
+--- SE side ---
+ r(as)  ring rms  sect rms       max       min  (uJy/beam)  flag
+  1.25   50347.5       nan  162966.4  162966.4  
+  1.75   56971.5       nan   99307.0   97566.0  
+  2.25   48856.4       nan   55363.3   26658.5  
+  2.75   28982.7       nan   12155.6   11145.7  
+  3.25   12721.7    1109.4    4969.8    2000.4  
+  3.75    4576.6       nan    1815.9     771.1  
+  4.25    1817.6     136.8     626.0     172.2  
+  4.75    1032.6     122.9      73.8    -242.5  
+  5.25     755.2      87.7    -166.5    -318.8  
+  5.75     519.6      61.1    -132.1    -338.5  
+
+--- NW side ---
+ r(as)  ring rms  sect rms       max       min  (uJy/beam)  flag
+  1.25   50347.5       nan  196256.9  196256.9  
+  1.75   56971.5       nan  125568.5   73811.1  
+  2.25   48856.4       nan   37961.5   36949.3  
+  2.75   28982.7    2874.8   17926.5    7509.3  
+  3.25   12721.7       nan    6360.6    2688.3  
+  3.75    4576.6     366.5    1204.1     167.1  
+  4.25    1817.6     423.5     395.8    -810.8  
+  4.75    1032.6     438.7    -115.6   -1143.8  
+  5.25     755.2     339.7    -359.6   -1205.6  
+  5.75     519.6     299.7    -300.6   -1053.0  
+
+Wrote DS9 peel circle (r = 1.00") to data/peel_regions/epoch4_1742780174_peel.reg
+Wrote peel mask (14 pixels, r = 1.00") to data/peel_regions/epoch4_1742780174_peel_mask.fits
+Saved figure to data/peel_regions/epoch4_1742780174_diag.png

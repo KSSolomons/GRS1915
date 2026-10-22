@@ -1,0 +1,4 @@
+# Region file format: DS9 version 4.1
+global color=green
+fk5
+circle(19:15:11.5085,+10:56:43.506,1.000")
