@@ -278,8 +278,11 @@ omitted_core_data = np.array(omitted_core_data) if len(omitted_core_data) > 0 el
 n_data = np.array(n_data)
 s_data = np.array(s_data)
 
-n_data = n_data[np.argsort(n_data[:, 0])][2:]
-s_data = s_data[np.argsort(s_data[:, 0])][2:]
+# Keep only the 2025 campaign jets (older pre-2025 ejecta are a separate event)
+n_data = n_data[np.argsort(n_data[:, 0])]
+s_data = s_data[np.argsort(s_data[:, 0])]
+n_data = n_data[n_data[:, 0] > 60600.0]
+s_data = s_data[s_data[:, 0] > 60600.0]
 num_obs_total = 2 * len(core_data) + 2 * len(n_data) + 2 * len(s_data)
 
 print(

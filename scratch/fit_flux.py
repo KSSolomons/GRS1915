@@ -58,6 +58,8 @@ for f in files:
         
         if 288.7979 < c["ra_deg"] < 288.7982:
             pass # core
+        elif mjd < 60600.0:
+            pass # pre-2025 components belong to older ejecta
         elif dy > 0:
             if ts != 1764664923:
                 n_data.append([mjd, flux, flux_err])
@@ -68,32 +70,39 @@ for f in files:
 n_data = np.array(n_data)
 s_data = np.array(s_data)
 
-target_dates = [
-    "2025-01-11 06:03:36",
-    "2025-02-02 06:13:52",
-    "2025-03-02 02:44:41",
-    "2025-03-24 01:35:33",
-]
-target_ts = [datetime.datetime.strptime(d, "%Y-%m-%d %H:%M:%S").timestamp() for d in target_dates]
-t0_mjd = target_ts[0] / 86400.0 + 40587.0
-target_mjd = np.array(target_ts) / 86400.0 + 40587.0
+# Epochs 1-4 (S-band capture-block IDs are unix timestamps, so MJD follows directly)
+target_ids = [1736575328, 1738471273, 1740883517, 1742780174]
+target_mjd = np.array(target_ids) / 86400.0 + 40587.0
+t0_mjd = target_mjd[0]
 
+out = ["Extrapolated lobe flux densities for Epochs 1-4",
+       "Exponential fade S(t) = a exp(-(t - t0)/tau_fade), t0 = Epoch 1, fitted to Epochs 5-11 only",
+       "(Epoch 12 jet components and pre-2025 components excluded)", ""]
 for label, dataset in [("NW Lobe", n_data), ("SE Lobe", s_data)]:
     t_data = dataset[:, 0]
     f_data = dataset[:, 1]
     err_data = dataset[:, 2]
-    
+
     valid = f_data > 0
     t_data = t_data[valid]
     f_data = f_data[valid]
     err_data = err_data[valid]
-    
+
     t_days = t_data - t0_mjd
     target_days = target_mjd - t0_mjd
-    
-    popt, _ = curve_fit(exp_model, t_days, f_data, sigma=err_data, absolute_sigma=True, p0=[f_data[0], -0.01])
+
+    popt, pcov = curve_fit(exp_model, t_days, f_data, sigma=err_data, absolute_sigma=True, p0=[f_data[0], -0.01])
+    perr = np.sqrt(np.diag(pcov))
     f_extrap = exp_model(target_days, *popt)
-    
-    print(f"--- {label} ---")
-    for d, f in zip(target_dates, f_extrap):
-        print(f"{d}: {f:.8f} Jy")
+    tau_fade, tau_err = -1.0 / popt[1], perr[1] / popt[1] ** 2
+    chi2_nu = np.sum(((f_data - exp_model(t_days, *popt)) / err_data) ** 2) / (len(f_data) - 2)
+
+    out.append(f"--- {label} (epochs used: MJD {', '.join(f'{t:.0f}' for t in t_data)}) ---")
+    out.append(f"tau_fade = {tau_fade:.1f} +/- {tau_err:.1f} d   (formal error; reduced chi2 = {chi2_nu:.2f})")
+    for i, (m, f) in enumerate(zip(target_mjd, f_extrap)):
+        out.append(f"Epoch {i + 1} (MJD {m:.2f}): {f * 1e3:.2f} mJy")
+    out.append("")
+
+print("\n".join(out))
+with open("data/extrapolated_flux_measurements_ep5-11.txt", "w") as fp:
+    fp.write("\n".join(out) + "\n")

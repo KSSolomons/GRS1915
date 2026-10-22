@@ -337,7 +337,7 @@ def main():
             "mjd_obs": 60686.2525,
             "rms_jy": 4.831714277465e-06,
             "rms_peeled_jy": None,  # Fill with 3GC peeled RMS
-            "s_jet_jy": 0.00953,    # ~9.5 mJy extrapolated from exponential decay
+            "s_jet_jy": 0.00984,    # ~9.8 mJy: mean of NW/SE exponential fade fits to Epochs 5-11
             "jet_pa_deg": 137.6,
             "t_ej": 60471.77,
             "output_path": "figures/block1_upper_limit_beam.png",
@@ -350,7 +350,7 @@ def main():
             "mjd_obs": 60708.2596296,
             "rms_jy": 4.831714277465e-06,
             "rms_peeled_jy": 1.061756531718e-04,  # Measured 3GC peeled RMS: 106.2 uJy/beam
-            "s_jet_jy": 0.00652,    # ~6.5 mJy extrapolated from exponential decay
+            "s_jet_jy": 0.00671,    # ~6.7 mJy: mean of NW/SE exponential fade fits to Epochs 5-11
             "jet_pa_deg": 137.6,
             "t_ej": 60471.77,
             "output_path": "figures/block2_upper_limit_beam.png",
@@ -363,7 +363,7 @@ def main():
             "mjd_obs": 60736.11478,
             "rms_jy": 4.831714277465e-06,
             "rms_peeled_jy": 3.100985734235e-04,  # Measured 3GC peeled RMS: 310.1 uJy/beam
-            "s_jet_jy": 0.00404,    # ~4.0 mJy extrapolated from exponential decay
+            "s_jet_jy": 0.00413,    # ~4.1 mJy: mean of NW/SE exponential fade fits to Epochs 5-11
             "jet_pa_deg": 137.6,
             "t_ej": 60471.77,
             "output_path": "figures/block3_upper_limit_beam.png",
@@ -376,7 +376,7 @@ def main():
             "mjd_obs": 60758.0668287,
             "rms_jy": 4.831714277465e-06,
             "rms_peeled_jy": None,  # Fill with 3GC peeled RMS
-            "s_jet_jy": 0.00277,    # ~2.8 mJy extrapolated from exponential decay
+            "s_jet_jy": 0.00283,    # ~2.8 mJy: mean of NW/SE exponential fade fits to Epochs 5-11
             "jet_pa_deg": 137.6,
             "t_ej": 60471.77,
             "output_path": "figures/block4_upper_limit_beam.png",
