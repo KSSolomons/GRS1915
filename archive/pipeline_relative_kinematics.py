@@ -791,7 +791,7 @@ for i in range(ndim):
 if ndim > 1:
     axes[-1].set_xlabel("Step Number")
 fig_trace.tight_layout()
-fig_trace.savefig("figures/mcmc_trace.png", dpi=300)
+fig_trace.savefig("figures/kinematics/mcmc_trace.png", dpi=300)
 plt.close(fig_trace)
 print("Saved trace plot to mcmc_trace.png")
 
@@ -804,7 +804,7 @@ fig_corner = corner.corner(
     title_kwargs={"fontsize": 10},
     title_fmt=".2e",
 )
-fig_corner.savefig("figures/corner_plot.png", dpi=300)
+fig_corner.savefig("figures/kinematics/corner_plot.png", dpi=300)
 plt.close(fig_corner)
 print("Saved corner plot to corner_plot.png")
 
@@ -1179,9 +1179,9 @@ ax.text(
     zorder=3,
 )
 
-plt.savefig("figures/parallel_perp_fit_plot.png", dpi=300, bbox_inches="tight")
+plt.savefig("figures/kinematics/parallel_perp_fit_plot.png", dpi=300, bbox_inches="tight")
 plt.savefig(
-    "figures/parallel_perp_fit_plot_kinematics.png", dpi=300, bbox_inches="tight"
+    "figures/kinematics/parallel_perp_fit_plot_kinematics.png", dpi=300, bbox_inches="tight"
 )
 plt.close(fig)
 print(
@@ -1292,7 +1292,7 @@ ax2_twin.tick_params(
 ax2_twin.tick_params(axis="y", labelcolor="darkorange")
 
 plt.tight_layout()
-plt.savefig("figures/pa_evolution_plot.png", dpi=300)
+plt.savefig("figures/kinematics/pa_evolution_plot.png", dpi=300)
 plt.close(fig2)
 print("Saved PA evolution plot to pa_evolution_plot.png")
 
@@ -1372,6 +1372,6 @@ fig_kin_corner = corner.corner(
     color="mediumseagreen",  # Matches the green theme from the paper
 )
 
-fig_kin_corner.savefig("figures/corner_plot_kinematics.png", dpi=300)
+fig_kin_corner.savefig("figures/kinematics/corner_plot_kinematics.png", dpi=300)
 plt.close(fig_kin_corner)
 print("Saved kinematic corner plot to corner_plot_kinematics.png\n")

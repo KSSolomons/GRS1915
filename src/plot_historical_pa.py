@@ -227,5 +227,5 @@ ax2.add_artist(con2)
 
 plt.subplots_adjust(hspace=0.15, left=0.12, right=0.95, top=0.95, bottom=0.08)
 
-plt.savefig("figures/historical_pa_plot.png", dpi=300)
-print("Saved to figures/historical_pa_plot.png")
+plt.savefig("figures/kinematics/historical_pa_plot.png", dpi=300)
+print("Saved to figures/kinematics/historical_pa_plot.png")

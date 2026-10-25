@@ -1409,7 +1409,7 @@ for _ in range(nwalkers):
         pos_list.append(opt_init)
 pos = np.array(pos_list)
 
-_cached_npz = f"data/absolute_kinematics_plot_data{_save_suffix}.npz"
+_cached_npz = f"data/absolute_kinematics/absolute_kinematics_plot_data{_save_suffix}.npz"
 if args.use_cached and os.path.exists(_cached_npz):
     print(f"Loading cached MCMC chains from {_cached_npz}...")
     _loaded = np.load(_cached_npz)
@@ -1992,10 +1992,10 @@ report_lines.append("=" * 70)
 report_output_text = "\n".join(report_lines)
 print("\n" + report_output_text + "\n")
 
-out_report_file = f"data/kinematic_report{_save_suffix}.txt"
+out_report_file = f"data/absolute_kinematics/kinematic_report{_save_suffix}.txt"
 with open(out_report_file, "w") as f:
     f.write("\n".join(model_sel_lines) + "\n\n" + report_output_text + "\n")
-with open(f"data/kinematic_report{_lim_suffix}.txt", "w") as f:
+with open(f"data/absolute_kinematics/kinematic_report{_lim_suffix}.txt", "w") as f:
     f.write("\n".join(model_sel_lines) + "\n\n" + report_output_text + "\n")
 print(f"Saved kinematic report to {out_report_file}\n")
 
@@ -2042,13 +2042,13 @@ fig_corner_kin = corner.corner(
     title_fmt=".2f",
 )
 fig_corner_kin.savefig(
-    f"figures/absolute_corner_plot_kinematics{_save_suffix}.png",
+    f"figures/absolute_models/absolute_corner_plot_kinematics{_save_suffix}.png",
     dpi=300,
     bbox_inches="tight"
 )
 plt.close(fig_corner_kin)
 print(
-    f"Saved prior-free kinematic corner plot to figures/absolute_corner_plot_kinematics{_save_suffix}.png"
+    f"Saved prior-free kinematic corner plot to figures/absolute_models/absolute_corner_plot_kinematics{_save_suffix}.png"
 )
 
 # Generate plots
@@ -2060,7 +2060,7 @@ fig_corner = corner.corner(
     title_kwargs={"fontsize": 10},
     title_fmt=".3f",
 )
-fig_corner.savefig(f"figures/absolute_corner_plot{_save_suffix}.png", dpi=300)
+fig_corner.savefig(f"figures/absolute_models/absolute_corner_plot{_save_suffix}.png", dpi=300)
 plt.close(fig_corner)
 
 fig_core, ax = plt.subplots(figsize=(8, 8))
@@ -2097,7 +2097,7 @@ if len(omitted_core_data) > 0:
         zorder=4,
     )
 ax.legend()
-plt.savefig("figures/core_mixture_fit.png", dpi=300)
+plt.savefig("figures/kinematics/core_mixture_fit.png", dpi=300)
 plt.close(fig_core)
 
 # -----------------------------------------------------------------------------
@@ -2285,17 +2285,17 @@ import warnings
 with warnings.catch_warnings():
     warnings.simplefilter("ignore", UserWarning)
     plt.tight_layout()
-plt.savefig(f"figures/ra_dec_plot{_save_suffix}.png", dpi=300, bbox_inches="tight")
+plt.savefig(f"figures/absolute_models/ra_dec_plot{_save_suffix}.png", dpi=300, bbox_inches="tight")
 plt.close(fig)
-print(f"Successfully generated and saved merged figures/ra_dec_plot{_save_suffix}.png")
+print(f"Successfully generated and saved merged figures/absolute_models/ra_dec_plot{_save_suffix}.png")
 
 # -----------------------------------------------------------------------------
 # 6.5. SAVE DATA FOR STANDALONE SEPARATION PLOT
 # -----------------------------------------------------------------------------
 print("\nSaving data for standalone parallel/perpendicular separation plotting...")
-os.makedirs("data", exist_ok=True)
+os.makedirs("data/absolute_kinematics", exist_ok=True)
 np.savez(
-    f"data/absolute_kinematics_plot_data{_save_suffix}.npz",
+    f"data/absolute_kinematics/absolute_kinematics_plot_data{_save_suffix}.npz",
     flat_samples=flat_samples,
     best_model_id=best_model["id"],
     p_Tej=p_Tej,
@@ -2314,7 +2314,7 @@ np.savez(
     c_mjd=c_mjd,
 )
 np.savez(
-    f"data/absolute_kinematics_plot_data{_lim_suffix}.npz",
+    f"data/absolute_kinematics/absolute_kinematics_plot_data{_lim_suffix}.npz",
     flat_samples=flat_samples,
     best_model_id=best_model["id"],
     p_Tej=p_Tej,
@@ -2332,7 +2332,7 @@ np.savez(
     s_dd_err=s_dd_err,
     c_mjd=c_mjd,
 )
-print(f"Saved plot data to data/absolute_kinematics_plot_data{_save_suffix}.npz")
+print(f"Saved plot data to data/absolute_kinematics/absolute_kinematics_plot_data{_save_suffix}.npz")
 
 if args.plot_separation:
     print("\nGenerating Parallel/Perpendicular Separation Plot...")
@@ -2340,11 +2340,11 @@ if args.plot_separation:
     from plot_absolute_separation import plot_absolute_separation
 
     if args.show_separation_limits == args.include_limits:
-        out_fig = f"figures/absolute_parallel_perp_fit_plot{_save_suffix}.png"
+        out_fig = f"figures/absolute_models/absolute_parallel_perp_fit_plot{_save_suffix}.png"
     elif args.show_separation_limits:
-        out_fig = f"figures/absolute_parallel_perp_fit_plot{_save_suffix}_with_arrows.png"
+        out_fig = f"figures/absolute_models/absolute_parallel_perp_fit_plot{_save_suffix}_with_arrows.png"
     else:
-        out_fig = f"figures/absolute_parallel_perp_fit_plot{_save_suffix}_no_arrows.png"
+        out_fig = f"figures/absolute_models/absolute_parallel_perp_fit_plot{_save_suffix}_no_arrows.png"
 
     plot_absolute_separation(
         with_limits=args.include_limits,
@@ -2484,9 +2484,9 @@ if len(omitted_core_data) > 0:
 
 ax_flux.legend(loc="best")
 plt.tight_layout()
-plt.savefig("figures/flux_evolution_with_extrap.png", dpi=300)
+plt.savefig("figures/kinematics/flux_evolution_with_extrap.png", dpi=300)
 plt.close(fig_flux)
-print("Successfully generated and saved figures/flux_evolution_with_extrap.png")
+print("Successfully generated and saved figures/kinematics/flux_evolution_with_extrap.png")
 
 # Auto-sync plain-text copies to scripts_txt/
 try:

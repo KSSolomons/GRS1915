@@ -8,7 +8,7 @@ from datetime import datetime
 import numpy as np
 from matplotlib.patches import Ellipse
 
-fits_dir = "/media/kyle/kyle_phd/GRS1915/FITS"
+fits_dir = "/media/kyle/kyle_phd/GRS1915/FITS/pcalmask"
 fits_files = glob.glob(os.path.join(fits_dir, "*_pcalmask-MFS-image.pbcor.fits"))
 
 data_list = []
@@ -158,7 +158,7 @@ for i in range(12):
 fig.supxlabel('Right Ascension (J2000)', color='black', fontsize=18, y=0.04)
 fig.supylabel('Declination (J2000)', color='black', fontsize=18, x=0.04)
 
-out_png = os.path.join(fits_dir, "kinematics_grid.png")
+out_png = "/media/kyle/kyle_phd/GRS1915/figures/kinematics/kinematics_grid.png"
 plt.savefig(out_png, dpi=300, bbox_inches='tight', facecolor='white')
 plt.close(fig)
 print(f"Saved grid to {out_png}")

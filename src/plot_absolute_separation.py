@@ -250,15 +250,15 @@ def plot_absolute_separation(
         if data_file is None:
             lim_str = "_with_limits" if with_limits else "_without_limits"
             if model_id is not None:
-                candidate = f"data/absolute_kinematics_plot_data_model{model_id}{lim_str}.npz"
+                candidate = f"data/absolute_kinematics/absolute_kinematics_plot_data_model{model_id}{lim_str}.npz"
                 if os.path.exists(candidate):
                     data_file = candidate
                 else:
-                    data_file = f"data/absolute_kinematics_plot_data{lim_str}.npz"
+                    data_file = f"data/absolute_kinematics/absolute_kinematics_plot_data{lim_str}.npz"
             else:
                 found = None
                 for m in [4, 3, 2, 1]:
-                    c = f"data/absolute_kinematics_plot_data_model{m}{lim_str}.npz"
+                    c = f"data/absolute_kinematics/absolute_kinematics_plot_data_model{m}{lim_str}.npz"
                     if os.path.exists(c):
                         found = c
                         break
@@ -266,9 +266,9 @@ def plot_absolute_separation(
                     data_file = found
                 else:
                     data_file = (
-                        f"data/absolute_kinematics_plot_data{lim_str}.npz"
-                        if os.path.exists(f"data/absolute_kinematics_plot_data{lim_str}.npz")
-                        else "data/absolute_kinematics_plot_data.npz"
+                        f"data/absolute_kinematics/absolute_kinematics_plot_data{lim_str}.npz"
+                        if os.path.exists(f"data/absolute_kinematics/absolute_kinematics_plot_data{lim_str}.npz")
+                        else "data/absolute_kinematics/absolute_kinematics_plot_data.npz"
                     )
         if not os.path.exists(data_file):
             print(
@@ -613,11 +613,11 @@ def plot_absolute_separation(
         width=1,
     )
     plt.tight_layout()
-    os.makedirs("figures", exist_ok=True)
+    os.makedirs("figures/absolute_models", exist_ok=True)
     if out_fig is None:
         model_str = f"_model{best_model_id}" if best_model_id is not None else ""
         lim_str = "_with_limits" if with_limits else "_without_limits"
-        base_name = f"figures/absolute_parallel_perp_fit_plot{model_str}{lim_str}"
+        base_name = f"figures/absolute_models/absolute_parallel_perp_fit_plot{model_str}{lim_str}"
         if show_limits == with_limits:
             out_fig = f"{base_name}.png"
         elif show_limits:

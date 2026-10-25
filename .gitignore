@@ -27,7 +27,7 @@ scripts_txt/
 
 # Unpublished paper drafts
 docs/new_main*
-scratch/new_main*
+scratch/draft_backups/
 
 # Large radio data (FITS images, clean/peel masks) - kept locally only
 *.fits

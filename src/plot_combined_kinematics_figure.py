@@ -25,12 +25,12 @@ from src.plot_absolute_separation import (
 plt.rcParams["font.family"] = "serif"
 plt.rcParams["mathtext.fontset"] = "dejavuserif"
 
-def make_combined_figure(out_fig="figures/combined_kinematics_fit_plot.png"):
+def make_combined_figure(out_fig="figures/paper/combined_kinematics_fit_plot.png"):
     np.random.seed(42)
 
     # 1. Load data
-    f_m1 = "data/absolute_kinematics_plot_data_model1_with_limits.npz"
-    f_m5 = "data/absolute_kinematics_plot_data_model5_with_limits.npz"
+    f_m1 = "data/absolute_kinematics/absolute_kinematics_plot_data_model1_with_limits.npz"
+    f_m5 = "data/absolute_kinematics/absolute_kinematics_plot_data_model5_with_limits.npz"
     
     if not os.path.exists(f_m1) or not os.path.exists(f_m5):
         raise FileNotFoundError("Model data files not found in data/")

@@ -311,7 +311,7 @@ def main():
             block["rms_jy"],
             JET_PA_DEG,
             T_EJ_REFERENCE,
-            f"figures/block{i}_upper_limit_beam.png",
+            f"figures/peel/block{i}_upper_limit_beam.png",
             rms_peeled_jy=block.get("rms_peeled_jy"),
             s_jet_jy=block.get("s_jet_jy"),
         )

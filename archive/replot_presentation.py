@@ -7,7 +7,7 @@ from matplotlib.cm import ScalarMappable
 from matplotlib.colors import Normalize
 
 # Load data
-data_file = "data/absolute_kinematics_plot_data.npz"
+data_file = "data/absolute_kinematics/absolute_kinematics_plot_data.npz"
 data = np.load(data_file)
 flat_samples = data["flat_samples"]
 best_model_id = int(data["best_model_id"])
@@ -308,7 +308,7 @@ ax.legend(
 )
 
 plt.tight_layout()
-plt.savefig("figures/presentation_ra_dec.png", dpi=300)
+plt.savefig("figures/kinematics/presentation_ra_dec.png", dpi=300)
 plt.close(fig)
 
 # ---------------------------------------------------------
@@ -509,7 +509,7 @@ ax_sep.legend(
 )
 
 plt.tight_layout()
-plt.savefig("figures/presentation_separation.png", dpi=300)
+plt.savefig("figures/kinematics/presentation_separation.png", dpi=300)
 plt.close(fig_sep)
 
 print("Generated presentation plots!")

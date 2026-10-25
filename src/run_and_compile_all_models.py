@@ -6,8 +6,8 @@ Piecewise Decel Anchored Tej) with and without observational upper limits (8 con
 configurable MCMC steps).
 
 Once finished:
-- Generates the multi-panel model comparison summary figure (figures/model_comparison_parameter_summary.png).
-- Compiles the full kinematic results into data/kinematics_comparison.txt.
+- Generates the multi-panel model comparison summary figure (figures/kinematics/model_comparison_parameter_summary.png).
+- Compiles the full kinematic results into data/absolute_kinematics/kinematics_comparison.txt.
 - Cleans up obsolete/redundant files (stale model 5 files, test output files, old logs).
 """
 
@@ -195,8 +195,8 @@ def compile_comparison_file(anchor_date=60650.0, anchor_std=100.0):
 
     reports = {}
     for m_id, name, k_str in models_info:
-        f_lim = f"data/kinematic_report_model{m_id}_with_limits.txt"
-        f_nolim = f"data/kinematic_report_model{m_id}_without_limits.txt"
+        f_lim = f"data/absolute_kinematics/kinematic_report_model{m_id}_with_limits.txt"
+        f_nolim = f"data/absolute_kinematics/kinematic_report_model{m_id}_without_limits.txt"
         reports[(m_id, True)] = parse_report_file(f_lim)
         reports[(m_id, False)] = parse_report_file(f_nolim)
 
@@ -412,7 +412,7 @@ def compile_comparison_file(anchor_date=60650.0, anchor_std=100.0):
     lines.append("=" * 96)
 
     compiled_text = "\n".join(lines) + "\n"
-    out_file = "data/kinematics_comparison.txt"
+    out_file = "data/absolute_kinematics/kinematics_comparison.txt"
     with open(out_file, "w") as f:
         f.write(compiled_text)
     print(f"\nSuccessfully compiled results to {out_file} ({len(compiled_text)} bytes)")
@@ -426,7 +426,7 @@ def remove_redundant_files():
         "output_test_0.5.txt",
         "scratch/temp.py",
         "scratch/run_all_models.py",
-        "figures/pa_wobble_explanation.pdf",
+        "figures/kinematics/pa_wobble_explanation.pdf",
         "data/run_with_limits.log",
         "data/run_without_limits.log",
     ]

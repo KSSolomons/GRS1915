@@ -157,8 +157,8 @@ def log_likelihood_general(r_n_func, r_s_func, pa_n, pa_s, theta_scatter, x_c, y
 
 # 3. BENCHMARK: MODEL 1 (BALLISTIC) AND MODEL 4 (PIECEWISE)
 # Load existing Model 1 and Model 4 results from NPZ to ensure exact consistency
-d1 = np.load("data/absolute_kinematics_plot_data_model1_with_limits.npz")
-d4 = np.load("data/absolute_kinematics_plot_data_model4_with_limits.npz")
+d1 = np.load("data/absolute_kinematics/absolute_kinematics_plot_data_model1_with_limits.npz")
+d4 = np.load("data/absolute_kinematics/absolute_kinematics_plot_data_model4_with_limits.npz")
 
 from src.plot_absolute_separation import unpack_params_abs, calc_trajectory
 p1 = np.median(d1["flat_samples"], axis=0)
@@ -348,7 +348,7 @@ ax2.legend(loc="upper right", fontsize=9, framealpha=0.9)
 ax2.set_ylim(-1, 28)
 ax2.grid(True, linestyle=":", alpha=0.5)
 
-out_fig = "figures/test_smooth_stall_comparison.png"
+out_fig = "figures/kinematics/test_smooth_stall_comparison.png"
 plt.savefig(out_fig, dpi=200, bbox_inches="tight")
 plt.close()
 print(f"Saved diagnostic figure to {out_fig}")

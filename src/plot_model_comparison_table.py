@@ -20,18 +20,18 @@ plt.rcParams.update({
 
 # Define the 12 configurations (6 models x 2 limits settings)
 runs = [
-    {"id": "m1_lim", "model": 1, "name": "M1 (Free)\n+Limits", "limits": True, "label": "Model 1 (With Limits)", "file": "data/kinematic_report_model1_with_limits.txt", "color": "#1f77b4"},
-    {"id": "m1_nolim", "model": 1, "name": "M1 (Free)\nNo Limits", "limits": False, "label": "Model 1 (No Limits)", "file": "data/kinematic_report_model1_without_limits.txt", "color": "#6baed6"},
-    {"id": "m2_lim", "model": 2, "name": "M2 (Anch)\n+Limits", "limits": True, "label": "Model 2 (With Limits)", "file": "data/kinematic_report_model2_with_limits.txt", "color": "#d62728"},
-    {"id": "m2_nolim", "model": 2, "name": "M2 (Anch)\nNo Limits", "limits": False, "label": "Model 2 (No Limits)", "file": "data/kinematic_report_model2_without_limits.txt", "color": "#fb6a4a"},
-    {"id": "m3_lim", "model": 3, "name": "M3 (Free)\n+Limits", "limits": True, "label": "Model 3 (With Limits)", "file": "data/kinematic_report_model3_with_limits.txt", "color": "#9467bd"},
-    {"id": "m3_nolim", "model": 3, "name": "M3 (Free)\nNo Limits", "limits": False, "label": "Model 3 (No Limits)", "file": "data/kinematic_report_model3_without_limits.txt", "color": "#c5b0d5"},
-    {"id": "m4_lim", "model": 4, "name": "M4 (Anch)\n+Limits", "limits": True, "label": "Model 4 (With Limits)", "file": "data/kinematic_report_model4_with_limits.txt", "color": "#2ca02c"},
-    {"id": "m4_nolim", "model": 4, "name": "M4 (Anch)\nNo Limits", "limits": False, "label": "Model 4 (No Limits)", "file": "data/kinematic_report_model4_without_limits.txt", "color": "#74c476"},
-    {"id": "m5_lim", "model": 5, "name": "M5 (Free)\n+Limits", "limits": True, "label": "Model 5 (With Limits)", "file": "data/kinematic_report_model5_with_limits.txt", "color": "#e377c2"},
-    {"id": "m5_nolim", "model": 5, "name": "M5 (Free)\nNo Limits", "limits": False, "label": "Model 5 (No Limits)", "file": "data/kinematic_report_model5_without_limits.txt", "color": "#f7b6d2"},
-    {"id": "m6_lim", "model": 6, "name": "M6 (Anch)\n+Limits", "limits": True, "label": "Model 6 (With Limits)", "file": "data/kinematic_report_model6_with_limits.txt", "color": "#ff7f0e"},
-    {"id": "m6_nolim", "model": 6, "name": "M6 (Anch)\nNo Limits", "limits": False, "label": "Model 6 (No Limits)", "file": "data/kinematic_report_model6_without_limits.txt", "color": "#ffbb78"},
+    {"id": "m1_lim", "model": 1, "name": "M1 (Free)\n+Limits", "limits": True, "label": "Model 1 (With Limits)", "file": "data/absolute_kinematics/kinematic_report_model1_with_limits.txt", "color": "#1f77b4"},
+    {"id": "m1_nolim", "model": 1, "name": "M1 (Free)\nNo Limits", "limits": False, "label": "Model 1 (No Limits)", "file": "data/absolute_kinematics/kinematic_report_model1_without_limits.txt", "color": "#6baed6"},
+    {"id": "m2_lim", "model": 2, "name": "M2 (Anch)\n+Limits", "limits": True, "label": "Model 2 (With Limits)", "file": "data/absolute_kinematics/kinematic_report_model2_with_limits.txt", "color": "#d62728"},
+    {"id": "m2_nolim", "model": 2, "name": "M2 (Anch)\nNo Limits", "limits": False, "label": "Model 2 (No Limits)", "file": "data/absolute_kinematics/kinematic_report_model2_without_limits.txt", "color": "#fb6a4a"},
+    {"id": "m3_lim", "model": 3, "name": "M3 (Free)\n+Limits", "limits": True, "label": "Model 3 (With Limits)", "file": "data/absolute_kinematics/kinematic_report_model3_with_limits.txt", "color": "#9467bd"},
+    {"id": "m3_nolim", "model": 3, "name": "M3 (Free)\nNo Limits", "limits": False, "label": "Model 3 (No Limits)", "file": "data/absolute_kinematics/kinematic_report_model3_without_limits.txt", "color": "#c5b0d5"},
+    {"id": "m4_lim", "model": 4, "name": "M4 (Anch)\n+Limits", "limits": True, "label": "Model 4 (With Limits)", "file": "data/absolute_kinematics/kinematic_report_model4_with_limits.txt", "color": "#2ca02c"},
+    {"id": "m4_nolim", "model": 4, "name": "M4 (Anch)\nNo Limits", "limits": False, "label": "Model 4 (No Limits)", "file": "data/absolute_kinematics/kinematic_report_model4_without_limits.txt", "color": "#74c476"},
+    {"id": "m5_lim", "model": 5, "name": "M5 (Free)\n+Limits", "limits": True, "label": "Model 5 (With Limits)", "file": "data/absolute_kinematics/kinematic_report_model5_with_limits.txt", "color": "#e377c2"},
+    {"id": "m5_nolim", "model": 5, "name": "M5 (Free)\nNo Limits", "limits": False, "label": "Model 5 (No Limits)", "file": "data/absolute_kinematics/kinematic_report_model5_without_limits.txt", "color": "#f7b6d2"},
+    {"id": "m6_lim", "model": 6, "name": "M6 (Anch)\n+Limits", "limits": True, "label": "Model 6 (With Limits)", "file": "data/absolute_kinematics/kinematic_report_model6_with_limits.txt", "color": "#ff7f0e"},
+    {"id": "m6_nolim", "model": 6, "name": "M6 (Anch)\nNo Limits", "limits": False, "label": "Model 6 (No Limits)", "file": "data/absolute_kinematics/kinematic_report_model6_without_limits.txt", "color": "#ffbb78"},
 ]
 
 def parse_report(filepath, model_id):
@@ -78,7 +78,7 @@ def parse_report(filepath, model_id):
     return data
 
 def get_unified_dbic(model_id, limits):
-    ref_file = "data/kinematic_report_model5_with_limits.txt" if limits else "data/kinematic_report_model5_without_limits.txt"
+    ref_file = "data/absolute_kinematics/kinematic_report_model5_with_limits.txt" if limits else "data/absolute_kinematics/kinematic_report_model5_without_limits.txt"
     if not os.path.exists(ref_file):
         return 0.0
     with open(ref_file, "r") as f:
@@ -268,8 +268,8 @@ fig.text(0.5, 0.015, "Marker Legend:  ● Filled Circle = With Upper Limits  |  
          ha="center", fontsize=10.5, weight="bold", bbox=dict(boxstyle="round,pad=0.4", facecolor="#f0f0f0", edgecolor="gray"))
 
 plt.tight_layout(rect=[0, 0.035, 1, 0.96])
-out_fig = "figures/model_comparison_parameter_summary.png"
-os.makedirs("figures", exist_ok=True)
+out_fig = "figures/kinematics/model_comparison_parameter_summary.png"
+os.makedirs("figures/kinematics", exist_ok=True)
 plt.savefig(out_fig, dpi=300)
 plt.close(fig)
 print(f"Saved visual comparison figure to {out_fig}")

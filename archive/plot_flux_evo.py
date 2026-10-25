@@ -131,5 +131,5 @@ plt.savefig(
     "/home/kyle/.gemini/antigravity-ide/brain/2aaabcc4-d0a7-4471-82a3-349f01ce5c1b/flux_evolution.png",
     dpi=300,
 )
-plt.savefig("figures/flux_evolution.png", dpi=300)
+plt.savefig("figures/kinematics/flux_evolution.png", dpi=300)
 print("Plot saved.")

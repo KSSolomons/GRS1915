@@ -5,7 +5,7 @@ from astropy.io import fits
 from astropy.wcs import WCS
 import numpy as np
 
-fits_dir = "/media/kyle/kyle_phd/GRS1915/FITS"
+fits_dir = "/media/kyle/kyle_phd/GRS1915/FITS/pcalmask"
 fits_files = glob.glob(os.path.join(fits_dir, "*.fits"))
 
 for fits_file in fits_files:

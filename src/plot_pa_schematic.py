@@ -10,7 +10,7 @@ from matplotlib.patches import Ellipse
 
 # Dynamic output directory relative to this script
 SCRIPT_DIR = Path(__file__).resolve().parent
-FIG_DIR = SCRIPT_DIR / "figures"
+FIG_DIR = SCRIPT_DIR.parent / "figures" / "kinematics"
 FIG_DIR.mkdir(parents=True, exist_ok=True)
 
 # Jet geometry & real data (EoN)

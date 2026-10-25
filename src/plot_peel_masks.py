@@ -29,7 +29,7 @@ fig, axes = plt.subplots(1, len(masks), figsize=(4.2 * len(masks), 4.6))
 for ax, mask_path in zip(np.atleast_1d(axes), masks):
     tag = os.path.basename(mask_path).split("_")
     epoch, block = tag[0], tag[1]
-    image_path = glob.glob(f"FITS/img_{block}*MFS-image.pbcor.fits")[0]
+    image_path = glob.glob(f"FITS/pcalmask/img_{block}*MFS-image.pbcor.fits")[0]
 
     with fits.open(image_path, memmap=True) as himg, fits.open(mask_path, memmap=True) as hmask:
         header = himg[0].header
@@ -67,6 +67,6 @@ for ax, mask_path in zip(np.atleast_1d(axes), masks):
 
 np.atleast_1d(axes)[0].set_ylabel("North offset (arcsec)")
 fig.tight_layout()
-out = "figures/peel_masks_vs_pbcor.png"
+out = "figures/peel/peel_masks_vs_pbcor.png"
 fig.savefig(out, dpi=150)
 print(f"Saved {out}")

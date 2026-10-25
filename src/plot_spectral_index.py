@@ -21,7 +21,7 @@ plt.rcParams["font.size"] = 11
 
 L_BAND_FILE = os.path.join(os.path.dirname(__file__), "..", "lc", "MeerKAT_GRS1915+105_all_NEW.txt")
 ALPHA_FILE = os.path.join(os.path.dirname(__file__), "..", "alpha", "alpha.txt")
-FIGURE_OUT = os.path.join(os.path.dirname(__file__), "..", "figures", "spectral_index_evolution.png")
+FIGURE_OUT = os.path.join(os.path.dirname(__file__), "..", "figures", "spectral", "spectral_index_evolution.png")
 
 def load_l_band(filepath):
     mjds, fluxes, errs = [], [], []
