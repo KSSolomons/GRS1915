@@ -1,0 +1,19 @@
+Perpendicular-offset test, linear model, no limits, N_data = 52
+A: axis through the core (paper Model 1); B: common offset d; C: separate d_n, d_s.
+variant   k      lnL      BIC  dBIC(vs A)   d_n (")  d_s (")  theta_scatter  T_ej   PA_n   PA_s
+A         8    58.77   -85.92        0.00     0.000    0.000           4.27  60372.3   318.3   317.5
+B         9    59.00   -82.44        3.48     0.267    0.267           4.44  60364.4   313.2   321.7
+C        10    60.31   -81.11        4.82    -0.339    1.578           3.38  60461.6   324.9   343.2
+
+MCMC, variant B (20000 steps x 128 walkers, 20% burn-in; max autocorr 421 steps): median [16th, 84th]
+  T_ej               60361.5581  [60262.1619, 60432.8059]
+  mu_r (mas/d)           5.3417  [    4.4400,     6.2465]
+  mu_a (mas/d)           7.0134  [    5.8264,     8.2085]
+  PA_n (E of N)        312.2142  [  304.0460,   320.1127]
+  PA_s+180 (E of N)    322.6472  [  315.9887,   329.5036]
+  theta_scatter          5.5850  [    4.1458,     7.5868]
+  x_c                   -0.1977  [   -0.2039,    -0.1916]
+  y_c                   -0.3590  [   -0.3636,    -0.3544]
+  d (arcsec)             0.3249  [   -0.0762,     0.7289]
+  beta cos theta         0.1354  [    0.1246,     0.1462]
+  P(d <= 0) = 2.10e-01

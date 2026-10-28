@@ -43,6 +43,13 @@ parser.add_argument("--n-sigma", type=float, default=5.0, help="Detection thresh
 parser.add_argument("--knot-flux", type=float, nargs=2, default=None, metavar=("NW_MJY", "SE_MJY"), help="Expected knot flux densities (mJy)")
 parser.add_argument("--model-fraction", type=float, default=0.99, help="Fraction of core model flux the suggested peel circle must hold")
 parser.add_argument("--subtract-core", action="store_true", help="Subtract the fitted beam-shaped core in the image plane before the scan")
+parser.add_argument(
+    "--centre",
+    nargs=2,
+    default=None,
+    metavar=("RA", "DEC"),
+    help="Fixed scan centre (sexagesimal or deg) instead of fitting the core; needed for post-peel images where the core is gone",
+)
 parser.add_argument("--write-mask", action="store_true", help="Write a full-size FITS mask of pixels above n_sigma x background rms")
 parser.add_argument(
     "--write-peel-mask",
@@ -106,8 +113,17 @@ xcat, ycat = (float(v) for v in wcs.world_to_pixel_values(CAT_RA, CAT_DEC))
 box = (np.abs(xx - xcat) < 2 * bmaj / pix) & (np.abs(yy - ycat) < 2 * bmaj / pix)
 p0 = [np.nanmax(image[box]), xcat, ycat]
 fit_fn = lambda c, amp, x0, y0: beam_gaussian(c, amp, x0, y0, sx, sy, theta_pix)
-popt, _ = curve_fit(fit_fn, (xx[box], yy[box]), image[box], p0=p0)
-core_amp, core_x, core_y = popt
+if args.centre:
+    from astropy.coordinates import SkyCoord
+
+    unit = ("hourangle", "deg") if ":" in args.centre[0] else ("deg", "deg")
+    c = SkyCoord(args.centre[0], args.centre[1], unit=unit)
+    core_x, core_y = (float(v) for v in wcs.world_to_pixel_values(c.ra.deg, c.dec.deg))
+    core_amp = image[int(round(core_y)), int(round(core_x))]
+    popt = [core_amp, core_x, core_y]
+else:
+    popt, _ = curve_fit(fit_fn, (xx[box], yy[box]), image[box], p0=p0)
+    core_amp, core_x, core_y = popt
 core_ra, core_dec = (float(v) for v in wcs.pixel_to_world_values(core_x, core_y))
 core_ra %= 360.0  # header CRVAL1 is stored as a negative angle
 if args.subtract_core:

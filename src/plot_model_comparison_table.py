@@ -264,7 +264,7 @@ ax6.legend(loc="lower left", fontsize=8.5, framealpha=0.9)
 ax6.grid(axis="y", linestyle=":", alpha=0.6)
 
 # Marker Legend
-fig.text(0.5, 0.015, "Marker Legend:  ● Filled Circle = With Upper Limits  |  □ Open Square / Hatch = Without Upper Limits  (Error bars denote 90% HDI)", 
+fig.text(0.5, 0.015, "Marker Legend:  ● Filled Circle = With Upper Limits  |  □ Open Square / Hatch = Without Upper Limits  (Error bars denote 90% equal-tailed credible intervals)", 
          ha="center", fontsize=10.5, weight="bold", bbox=dict(boxstyle="round,pad=0.4", facecolor="#f0f0f0", edgecolor="gray"))
 
 plt.tight_layout(rect=[0, 0.035, 1, 0.96])

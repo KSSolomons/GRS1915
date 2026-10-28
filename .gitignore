@@ -33,3 +33,7 @@ scratch/draft_backups/
 *.fits
 FITS/
 masks/
+
+# Local backups and LaTeX build outputs
+scratch/
+docs/build/

@@ -1,0 +1,21 @@
+Forward test: flux measured at each model's predicted knot position in the post-peel image (no-limits fits).
+S_meas = fitted amplitude (mJy/beam) with a free core residual; sigma_emp = scatter of fixed-position amplitudes at the
+same radius, 36 PAs, +/-30 deg around both jet directions excluded; S_expected = exponential fade extrapolated back (mJy).
+pred_r < ~1.2" is inside the core residual and not a clean test.
+model        D_kpc epoch side  pred_r pred_PA  S_meas sig_emp  S_exp  (Sexp-Smeas)/sig
+ballistic      9.4     3   NW    0.92   319.6   -0.40    1.31   4.13               3.5
+ballistic      9.4     3   SE    1.23   138.6   -0.46    1.80   4.13               2.6
+ballistic      9.4     4   NW    1.24   319.6    0.25    1.32   2.83               1.9
+ballistic      9.4     4   SE    1.65   138.6    1.44    0.34   2.83               4.1
+decel_sym      9.4     3   NW    1.70   318.5   -0.01    1.54   4.13               2.7
+decel_sym      9.4     3   SE    2.52   137.4    0.13    0.65   4.13               6.1
+decel_sym      9.4     4   NW    1.89   318.5    0.25    0.28   2.83               9.3
+decel_sym      9.4     4   SE    2.74   137.4    0.72    0.22   2.83               9.6
+decel_asym     9.4     3   NW    1.69   318.5   -0.02    1.55   4.13               2.7
+decel_asym     9.4     3   SE    2.58   137.4    0.14    0.63   4.13               6.3
+decel_asym     9.4     4   NW    1.88   318.5    0.25    0.28   2.83               9.3
+decel_asym     9.4     4   SE    2.78   137.4    0.71    0.22   2.83               9.7
+coast_decel    9.4     3   NW    1.70   318.5   -0.01    1.54   4.13               2.7
+coast_decel    9.4     3   SE    2.52   137.4    0.13    0.65   4.13               6.1
+coast_decel    9.4     4   NW    1.89   318.5    0.25    0.28   2.83               9.3
+coast_decel    9.4     4   SE    2.74   137.4    0.72    0.22   2.83               9.6

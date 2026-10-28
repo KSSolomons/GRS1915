@@ -1,17 +1,42 @@
-# Lobe positions for get_alpha.py, from the S-band MFS fits (S-band-fits/), written by make_lobe_positions.py
-# N = north (receding), S = south (approaching); SNR is amplitude / error in the MFS image.
+# Per-epoch component positions for get_alpha.py, written by make_lobe_positions.py
+# C = core and N = north (receding), S = south (approaching) lobes, from the S-band MFS fits (S-band-fits/);
+# REF1 = reference source, from a Gaussian fit to the MFS image (FITS/). SNR is amplitude / error.
 # Block        Label RA (J2000)           Dec (J2000)             SNR
+1736575328     C     19h15m11.5136s       +10d56m44.3033s        67.7
+1736575328     REF1  19h14m44.6751s       +10d57m56.0095s       297.1
+1738471273     C     19h15m11.5419s       +10d56m44.7012s        19.8
+1738471273     REF1  19h14m44.7041s       +10d57m56.4184s       516.4
+1740883517     C     19h15m11.5449s       +10d56m44.6115s      2609.2
+1740883517     REF1  19h14m44.7091s       +10d57m56.3357s      1156.3
+1742780174     C     19h15m11.5085s       +10d56m43.5059s       492.9
+1742780174     REF1  19h14m44.6733s       +10d57m55.2357s       912.1
+1745709012     C     19h15m11.5519s       +10d56m44.5684s       156.0
 1745709012     S     19h15m11.7011s       +10d56m42.5273s         6.7
 1745709012     N     19h15m11.4360s       +10d56m46.0229s         4.4
+1745709012     REF1  19h14m44.7156s       +10d57m56.2952s       880.8
+1749586570     C     19h15m11.5468s       +10d56m44.4946s       170.3
 1749586570     S     19h15m11.7176s       +10d56m42.1424s        23.6
 1749586570     N     19h15m11.4292s       +10d56m46.3650s        23.8
+1749586570     REF1  19h14m44.7109s       +10d57m56.2229s       793.0
+1751137270     C     19h15m11.5483s       +10d56m44.5567s       206.9
 1751137270     S     19h15m11.7029s       +10d56m41.9217s        30.9
 1751137270     N     19h15m11.4104s       +10d56m46.2860s        42.7
+1751137270     REF1  19h14m44.7109s       +10d57m56.2889s       481.3
+1753549996     C     19h15m11.5365s       +10d56m44.3040s        90.4
 1753549996     S     19h15m11.7070s       +10d56m41.5973s        12.2
 1753549996     N     19h15m11.4089s       +10d56m46.5530s        17.5
+1753549996     REF1  19h14m44.7002s       +10d57m56.0294s      1240.0
+1756479610     C     19h15m11.5439s       +10d56m44.5102s        67.1
 1756479610     S     19h15m11.7230s       +10d56m41.9004s         9.5
 1756479610     N     19h15m11.4273s       +10d56m47.0437s        10.9
+1756479610     REF1  19h14m44.7072s       +10d57m56.2577s       431.1
+1759581193     C     19h15m11.5268s       +10d56m44.4366s        28.4
 1759581193     N     19h15m11.3940s       +10d56m47.1582s         5.9
 1759581193     S     19h15m11.7000s       +10d56m41.7554s         4.4
+1759581193     REF1  19h14m44.6853s       +10d57m56.1182s       752.5
+1761391938     C     19h15m11.5554s       +10d56m44.5434s        30.1
 1761391938     N     19h15m11.4230s       +10d56m47.6222s         6.0
 1761391938     S     19h15m11.7159s       +10d56m40.7741s         4.8
+1761391938     REF1  19h14m44.7186s       +10d57m56.3256s       430.0
+1764664923     C     19h15m11.5562s       +10d56m44.5320s        20.4
+1764664923     REF1  19h14m44.7222s       +10d57m56.2685s       206.2

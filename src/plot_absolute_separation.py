@@ -482,7 +482,7 @@ def plot_absolute_separation(
         ecolor="black",
         capsize=0,
         elinewidth=1.0,
-        label=r"$\Delta\theta_\parallel^N$",
+        label=r"$r_\parallel^N$",
     )
     ax_sep.errorbar(
         s_mjd - 60000,
@@ -496,7 +496,7 @@ def plot_absolute_separation(
         ecolor="black",
         capsize=0,
         elinewidth=1.0,
-        label=r"$\Delta\theta_\parallel^S$",
+        label=r"$r_\parallel^S$",
     )
 
     ax_sep.errorbar(
@@ -511,7 +511,7 @@ def plot_absolute_separation(
         ecolor="lightgray",
         capsize=0,
         elinewidth=1.0,
-        label=r"$\Delta\theta_\perp^N$",
+        label=r"$r_\perp^N$",
     )
     ax_sep.errorbar(
         s_mjd - 60000,
@@ -525,7 +525,7 @@ def plot_absolute_separation(
         ecolor="lightgray",
         capsize=0,
         elinewidth=1.0,
-        label=r"$\Delta\theta_\perp^S$",
+        label=r"$r_\perp^S$",
     )
 
     # Upper Limits (only drawn if show_limits is True)
@@ -568,10 +568,10 @@ def plot_absolute_separation(
     handles, labels = ax_sep.get_legend_handles_labels()
     by_label = dict(zip(labels, handles))
     preferred_order = [
-        r"$\Delta\theta_\parallel^N$",
-        r"$\Delta\theta_\parallel^S$",
-        r"$\Delta\theta_\perp^N$",
-        r"$\Delta\theta_\perp^S$",
+        r"$r_\parallel^N$",
+        r"$r_\parallel^S$",
+        r"$r_\perp^N$",
+        r"$r_\perp^S$",
         "Model Posterior Median",
         r"Model Posterior $1\sigma$ CI",
         "Model Posterior 90% CI",

@@ -211,6 +211,9 @@ def process_block(
     output_path,
     rms_peeled_jy=None,
     s_jet_jy=None,
+    measured=None,
+    r_lim=None,
+    sigma_pos_measured=None,
 ):
     bmaj_arcsec = bmaj_deg * 3600.0
     bmin_arcsec = bmin_deg * 3600.0
@@ -271,6 +274,17 @@ def process_block(
         print(f"  3-sigma Upper Limit: {three_sigma_ujy:.2f} uJy/beam")
         print(f"  (Note: Pending 3GC peeled RMS noise for local SNR calculation)")
 
+    if measured:
+        print(f"\nMeasured limits (injection-recovery, larger of NW/SE; r_lim = {r_lim:.2f} arcsec, sigma_pos = {sigma_pos_measured:.3f} arcsec at S_exp, 5 sigma):")
+        print(f"  {'thr':>3} {'S/S_exp':>7} {'S (mJy)':>8} {'r_lim (as)':>10} {'sigma_pos (as)':>14} {'sigma_emp (uJy)':>16}")
+        for thr, per_s in measured.items():
+            for sf, v in per_s.items():
+                s_txt = f"{sf * s_jet_jy * 1e3:8.2f}" if s_jet_jy else f"{'--':>8}"
+                if v is None:
+                    print(f"  {thr:3d} {sf:7.2f} {s_txt} {'>4.00':>10} {'--':>14} {'--':>16}")
+                else:
+                    print(f"  {thr:3d} {sf:7.2f} {s_txt} {v[0]:10.2f} {v[1]:14.3f} {v[2] * 1e6:16.0f}")
+
     if dt_days > 0:
         print(f"\nKinematic Constraints (relative to T_ej = {t_ej:.2f}):")
         print(f"  Time baseline (dt): {dt_days:.2f} days")
@@ -293,6 +307,8 @@ def process_block(
         "sigma_pos_3sigma": sigma_pos_3sigma,
         "sigma_pos_model": sigma_pos_model,
         "rms_peeled_jy": rms_peeled_jy,
+        "r_lim": r_lim,
+        "sigma_pos_measured": sigma_pos_measured,
     }
 
 
@@ -314,6 +330,9 @@ def main():
             f"figures/peel/block{i}_upper_limit_beam.png",
             rms_peeled_jy=block.get("rms_peeled_jy"),
             s_jet_jy=block.get("s_jet_jy"),
+            measured=block.get("measured"),
+            r_lim=block.get("r_lim_arcsec"),
+            sigma_pos_measured=block.get("sigma_pos_arcsec"),
         )
         results.append(res)
 

@@ -1,0 +1,19 @@
+# In-band spectral index per epoch, S(nu) = S0 (nu/nu0)^alpha
+# Core held at the position measured in each epoch's MFS image (row C of lobe_positions.txt); epochs
+# with lobes listed there were fitted with the core and the lobes together.
+# Fitted in linear flux space over the channel images; all channels retained, including marginal ones.
+# A flux-scale error is common to the channels of a band and cancels in alpha, so no systematic term is applied.
+# Err_a is the formal error; Err_a_sc rescales it by sqrt(chi2/dof) where that exceeds one.
+# Epoch                 MJD   N   nu_min   nu_max     S0(uJy)      S0err    alpha     Err_a Err_a_sc chi2/dof   Flag
+1736575328       60686.2667   7   2.6796   3.3358   616757.55     179.16    0.071     0.004    0.072  307.19   good
+1738471273       60708.2104   7   2.6796   3.3358   524418.79     132.44   -0.497     0.004    0.084  562.10   good
+1740883517       60736.1299   7   2.6796   3.3358   389650.73      47.44   -0.682     0.002    0.016   95.27   good
+1742780174       60758.0821   7   2.6796   3.3358   366880.19      46.02   -0.381     0.002    0.058 1081.08   good
+1745709012       60791.9806   7   2.6796   3.3358    50119.24      17.58   -0.657     0.005    0.072  192.64   good
+1749586570       60836.8597   7   2.6796   3.3358     5181.30      14.77   -0.562     0.042    0.042    0.83   good
+1751137270       60854.8076   7   2.6796   3.3358     3136.26      14.74   -0.490     0.069    0.088    1.60   good
+1753549996       60882.7327   7   2.6796   3.3358     1829.28      13.76   -0.448     0.111    0.120    1.16   good
+1756479610       60916.6397   8   2.6783   3.4409     1055.94      15.26   -0.672     0.214    7.951 1380.13   poor
+1759581193       60952.5375   7   2.6796   3.3358      696.20      15.95   -0.360     0.339    0.339    0.51   fair
+1761391938_S11   60973.4960   7   2.6796   3.3358      553.05      14.70   -0.286     0.389    0.397    1.04   fair
+1764664923_S12   61011.3791   7   2.6796   3.3358      388.80      16.78   -0.990     0.646    1.025    2.51   poor

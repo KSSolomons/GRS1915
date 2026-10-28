@@ -1,0 +1,26 @@
+Epoch 4 uv injection: surviving fraction and matched-filter test (src/uv_injection_template_test.py)
+
+Cut along the jet axis (mJy/beam): expected if the whole knot survived (S_inj x PSF) vs measured difference
+  1.00"  expected +0.70  measured -0.60
+  1.35"  expected +1.19  measured -0.79
+  2.00"  expected +2.16  measured -0.29
+  2.50"  expected +2.65  measured +0.56
+  2.80"  expected +2.75  measured +0.97
+  3.10"  expected +2.65  measured +1.24
+  3.45"  expected +2.35  measured +1.31
+  4.00"  expected +1.57  measured +0.92
+  5.00"  expected +0.29  measured -0.03
+
+Surviving fraction by estimator:
+  pixel value at the injected position      0.34
+  peak of the difference (3.36", PA 138)      0.48
+  PSF-shaped knot fitted within 5"          0.26
+  beam-shaped fit with free core term       0.51  (src/measure_uv_injection.py; the core term absorbs the trough)
+
+Matched filter (template = peeled knot of 2.83 mJy; noise from 22 rotations >= 40 deg from the jet axis)
+  mask within 1.5" of (3.1", PA 138):
+    a_obs = 0.493 (as an S_inj-scaled knot: 1.40 mJy); noise sigma 0.160, mean -0.054
+    knot of 2.83 mJy disfavoured at 2.8 sigma; for 2.97 mJy (SE fade) 3.1 sigma; 5 sigma upper limit 3.81 mJy
+  mask 1.5-5" from the core, within 40 deg of the SE axis:
+    a_obs = 0.482 (as an S_inj-scaled knot: 1.36 mJy); noise sigma 0.125, mean -0.034
+    knot of 2.83 mJy disfavoured at 3.9 sigma; for 2.97 mJy (SE fade) 4.3 sigma; 5 sigma upper limit 3.23 mJy

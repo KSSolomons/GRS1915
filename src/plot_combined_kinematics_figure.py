@@ -251,15 +251,15 @@ def make_combined_figure(out_fig="figures/paper/combined_kinematics_fit_plot.png
 
         # Colored markers matching left plot time colormaps (Bahramian et al. style)
         ax.scatter(n_mjd, n_par_opt, c=n_mjd, cmap=cmap_north, norm=norm, marker="^",
-                   edgecolors="black", s=55, zorder=4, label=r"$\theta_\parallel^N$")
+                   edgecolors="black", s=55, zorder=4, label=r"$r_\parallel^N$")
         ax.scatter(s_mjd, s_par_opt, c=s_mjd, cmap=cmap_south, norm=norm, marker="v",
-                   edgecolors="black", s=55, zorder=4, label=r"$\theta_\parallel^S$")
+                   edgecolors="black", s=55, zorder=4, label=r"$r_\parallel^S$")
 
         # Perpendicular motion (gray triangles along zero line)
         ax.errorbar(n_mjd, n_perp_opt, yerr=n_perp_err_opt, fmt="none", ecolor="silver", capsize=0, elinewidth=0.8, zorder=2)
         ax.errorbar(s_mjd, s_perp_opt, yerr=s_perp_err_opt, fmt="none", ecolor="silver", capsize=0, elinewidth=0.8, zorder=2)
-        ax.scatter(n_mjd, n_perp_opt, color="lightgray", edgecolors="gray", marker="^", s=45, zorder=2.2, label=r"$\theta_\perp^N$")
-        ax.scatter(s_mjd, s_perp_opt, color="lightgray", edgecolors="gray", marker="v", s=45, zorder=2.2, label=r"$\theta_\perp^S$")
+        ax.scatter(n_mjd, n_perp_opt, color="lightgray", edgecolors="gray", marker="^", s=45, zorder=2.2, label=r"$r_\perp^N$")
+        ax.scatter(s_mjd, s_perp_opt, color="lightgray", edgecolors="gray", marker="v", s=45, zorder=2.2, label=r"$r_\perp^S$")
 
         # Non-detection Upper limits with positional accuracy sigma_pos = theta_beam / (2 * SNR)
         ul_mjd, ul_r, ul_sigma_pos = blending_limits()
@@ -315,8 +315,8 @@ def make_combined_figure(out_fig="figures/paper/combined_kinematics_fit_plot.png
     by_label = dict(zip(labels, handles))
 
     leg_order = [
-        r"$\theta_\parallel^N$", r"$\theta_\parallel^S$",
-        r"$\theta_\perp^N$", r"$\theta_\perp^S$",
+        r"$r_\parallel^N$", r"$r_\parallel^S$",
+        r"$r_\perp^N$", r"$r_\perp^S$",
         "Model Posterior Median", r"Model Posterior $1\sigma$ CI",
         "Upper Limits"
     ]

@@ -28,6 +28,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from epoch_limits import EJECTION_CAMPAIGN_START, blending_limits
+from frame_offsets import apply_frame_offset, load_frame_offsets
 
 UL_MJD, UL_R, _ = blending_limits()
 
@@ -93,10 +94,10 @@ parser.add_argument(
     help="Gaussian likelihood penalty width (arcsec) for position upper limits (default: 0.05 arcsec)",
 )
 parser.add_argument(
-    "--hdi-prob",
+    "--ci-prob",
     type=float,
     default=0.90,
-    help="Credible interval mass for Highest Density Interval (default: 0.90 for 90%% HDI)",
+    help="Mass of the equal-tailed credible interval (default: 0.90, i.e. 5th-95th percentiles)",
 )
 parser.add_argument(
     "--enforce-subluminal",
@@ -115,6 +116,19 @@ parser.add_argument(
     type=float,
     default=9.4,
     help="System distance in kpc for intrinsic velocity calculation and physical prior (default: 9.4)",
+)
+parser.add_argument(
+    "--sys-dist-std",
+    type=float,
+    default=0.7,
+    help="1-sigma width in kpc of the Gaussian distance prior (default: 0.7)",
+)
+parser.add_argument(
+    "--core-referenced",
+    action="store_true",
+    help="Robustness check: measure each lobe from the core of its own epoch instead of the frame-corrected common "
+    "frame (the frame offset cancels; core and lobe errors added in quadrature; the core is pinned at the origin). "
+    "Outputs get the suffix _corereferenced",
 )
 parser.add_argument(
     "--use-cached",
@@ -154,27 +168,22 @@ if getattr(args, "all_models", False) or getattr(args, "compile_only", False):
 if args.show_separation_limits is None:
     args.show_separation_limits = args.include_limits
 _lim_suffix = "_with_limits" if args.include_limits else "_without_limits"
+if args.core_referenced:
+    _lim_suffix += "_corereferenced"
 
 
 
 
-def compute_hdi(samples, credible_mass=None):
+def compute_interval(samples, credible_mass=None):
+    """Equal-tailed credible interval: [lower, median, upper] percentiles."""
     if credible_mass is None:
-        credible_mass = getattr(args, "hdi_prob", 0.90) if "args" in globals() else 0.90
+        credible_mass = getattr(args, "ci_prob", 0.90) if "args" in globals() else 0.90
     valid_samples = samples[np.isfinite(samples)]
     if len(valid_samples) == 0:
         return [np.nan, np.nan, np.nan]
-    sorted_samples = np.sort(valid_samples)
-    window_size = int(np.ceil(credible_mass * len(sorted_samples)))
-    if window_size == 0 or window_size > len(sorted_samples):
-        return [sorted_samples[0], np.median(valid_samples), sorted_samples[-1]]
-    window_widths = (
-        sorted_samples[window_size - 1 :] - sorted_samples[: -window_size + 1]
-    )
-    min_idx = np.argmin(window_widths)
-    hdi_lower = sorted_samples[min_idx]
-    hdi_upper = sorted_samples[min_idx + window_size - 1]
-    return [hdi_lower, np.median(valid_samples), hdi_upper]
+    tail = 50.0 * (1.0 - credible_mass)
+    lower, median, upper = np.percentile(valid_samples, [tail, 50.0, 100.0 - tail])
+    return [lower, median, upper]
 
 
 plt.rcParams["font.family"] = "serif"
@@ -188,9 +197,11 @@ act_ra_deg = (19 + 15 / 60.0 + 11.558 / 3600.0) * 15.0
 act_dec_deg = 10 + 56 / 60.0 + 44.905 / 3600.0
 cos_dec = np.cos(np.radians(act_dec_deg))
 
+FRAME_OFFSETS = load_frame_offsets()
 core_data_raw = []
 n_data = []
 s_data = []
+no_offset = set()
 
 for f in files:
     filename = os.path.basename(f)
@@ -244,8 +255,12 @@ for f in files:
 
         dx = (c["ra_deg"] - act_ra_deg) * 3600.0 * cos_dec
         dy = (c["dec_deg"] - act_dec_deg) * 3600.0
-        ex = c["ra_err"]
-        ey = c["dec_err"]
+        # Tie the epoch to the common frame; epochs without a measured offset are left out
+        corrected = apply_frame_offset(FRAME_OFFSETS, ts, dx, dy, c["ra_err"], c["dec_err"])
+        if corrected is None:
+            no_offset.add(round(mjd, 2))
+            continue
+        dx, dy, ex, ey = corrected
         flux = c.get("flux", 0.0)
         flux_err = c.get("flux_err", 0.0)
 
@@ -258,26 +273,11 @@ for f in files:
             if ts != 1764664923:  # Exclude Epoch 12 jet measurements
                 s_data.append([mjd, dx, dy, ex, ey, flux, flux_err])
 
-# Dynamically filter outliers based on Median Absolute Deviation (MAD) of spatial distances
-core_data = []
+# The frame correction removes the image shifts that the earlier MAD filter rejected, so no core is filtered
+if no_offset:
+    print(f"No frame offset for MJD {sorted(no_offset)}; those epochs are left out")
+core_data = core_data_raw
 omitted_core_data = []
-if len(core_data_raw) > 0:
-    temp_core = np.array(core_data_raw)
-    med_dx = np.median(temp_core[:, 1])
-    med_dy = np.median(temp_core[:, 2])
-    
-    distances = np.sqrt((temp_core[:, 1] - med_dx)**2 + (temp_core[:, 2] - med_dy)**2)
-    mad = np.median(np.abs(distances - np.median(distances)))
-    
-    # Use a robust threshold of 5 MAD (with a 0.4 arcsec minimum floor to prevent over-filtering)
-    threshold = max(5 * mad, 0.4)
-    
-    for i, c in enumerate(core_data_raw):
-        if distances[i] > threshold:
-            omitted_core_data.append(c)
-        else:
-            core_data.append(c)
-
 core_data = np.array(core_data)
 omitted_core_data = np.array(omitted_core_data) if len(omitted_core_data) > 0 else np.empty((0, 7))
 n_data = np.array(n_data)
@@ -288,6 +288,25 @@ n_data = n_data[np.argsort(n_data[:, 0])]
 s_data = s_data[np.argsort(s_data[:, 0])]
 n_data = n_data[n_data[:, 0] > EJECTION_CAMPAIGN_START]
 s_data = s_data[s_data[:, 0] > EJECTION_CAMPAIGN_START]
+if args.core_referenced:
+    # Lobe minus the core of the same epoch: the frame offset cancels, so take it back out of the errors
+    def _raw_err(mjd, ex, ey):
+        fx, fy, efx, efy = FRAME_OFFSETS[int(round((mjd - 40587.0) * 86400.0))]
+        return np.sqrt(max(ex**2 - efx**2, 0.0)), np.sqrt(max(ey**2 - efy**2, 0.0))
+
+    for lobes in (n_data, s_data):
+        for row in lobes:
+            k = np.argmin(np.abs(core_data[:, 0] - row[0]))
+            if abs(core_data[k, 0] - row[0]) > 1e-3:
+                raise SystemExit(f"No core in the epoch of the lobe at MJD {row[0]:.3f}")
+            lx, ly = _raw_err(row[0], row[3], row[4])
+            cx, cy = _raw_err(core_data[k, 0], core_data[k, 3], core_data[k, 4])
+            row[1], row[2] = row[1] - core_data[k, 1], row[2] - core_data[k, 2]
+            row[3], row[4] = np.hypot(lx, cx), np.hypot(ly, cy)
+    # Every core is the origin of its own epoch; tiny errors pin the fitted core there
+    core_data[:, 1:3] = 0.0
+    core_data[:, 3:5] = 1e-3
+    print("Core-referenced positions: lobes measured from the core of their own epoch")
 num_obs_total = 2 * len(core_data) + 2 * len(n_data) + 2 * len(s_data)
 
 print(
@@ -1421,8 +1440,8 @@ else:
     thin = max(1, min(10, (n_steps - burnin) // 2))
     flat_samples = sampler.get_chain(discard=burnin, thin=thin, flat=True)
 
-p_res = [compute_hdi(flat_samples[:, i]) for i in range(ndim)]
-p_res_1s = [compute_hdi(flat_samples[:, i], credible_mass=0.6827) for i in range(ndim)]
+p_res = [compute_interval(flat_samples[:, i]) for i in range(ndim)]
+p_res_1s = [compute_interval(flat_samples[:, i], credible_mass=0.6827) for i in range(ndim)]
 
 
 # 5. DERIVED KINEMATICS & OUTPUT
@@ -1437,16 +1456,9 @@ from scipy.stats import truncnorm
 
 def draw_physical_distance(mean_d, std_d, dmax_chain):
     # Vectorized truncated normal sampling conditioned on 0.5 kpc <= D <= D_max
-    # Following Mirabel & Rodriguez (1994) and Bahramian et al. (2023).
-    # If D_max comfortably exceeds the prior (e.g. Model 1 ballistic), use standard system distance.
-    # If D_max is restrictive (e.g. Model 5 deceleration), adopt the Reid et al. (2014) trigonometric
-    # parallax distance (8.6 +- 1.8 kpc) conditioned on D <= D_max to avoid artificial edge piling.
-    if np.median(dmax_chain) >= 15.0:
-        loc = mean_d
-        scale = std_d
-    else:
-        loc = 8.6 if mean_d == 9.4 else mean_d
-        scale = 1.8 if std_d == 1.0 else std_d
+    # (Mirabel & Rodriguez 1994; Bahramian et al. 2023). The prior is the same for every model.
+    loc = mean_d
+    scale = std_d
     a = (0.5 - loc) / scale
     b = (dmax_chain - loc) / scale
     b = np.maximum(a + 1e-4, b)
@@ -1466,7 +1478,7 @@ if best_model["id"] == 1:
     mu_rec_rad_s = mu_rec_chain * (np.pi / (180.0 * 3600.0)) / 86400.0
     D_max_kpc_chain = (c_const / np.sqrt(mu_app_rad_s * mu_rec_rad_s)) / 3.086e19
 
-    D_kpc_chain = draw_physical_distance(sys_dist, 1.0, D_max_kpc_chain)
+    D_kpc_chain = draw_physical_distance(sys_dist, args.sys_dist_std, D_max_kpc_chain)
     D_m_chain = D_kpc_chain * 3.086e19
 
     # Apparent proper motions (beta_app = mu * D / c)
@@ -1499,7 +1511,7 @@ elif best_model["id"] == 2:
     mu_app_rad_s = mu_app_chain * (np.pi / (180.0 * 3600.0)) / 86400.0
     mu_rec_rad_s = mu_rec_chain * (np.pi / (180.0 * 3600.0)) / 86400.0
     D_max_kpc_chain = (c_const / np.sqrt(mu_app_rad_s * mu_rec_rad_s)) / 3.086e19
-    D_kpc_chain = draw_physical_distance(sys_dist, 1.0, D_max_kpc_chain)
+    D_kpc_chain = draw_physical_distance(sys_dist, args.sys_dist_std, D_max_kpc_chain)
     D_m_chain = D_kpc_chain * 3.086e19
 
     # Apparent proper motions (beta_app = mu * D / c)
@@ -1568,7 +1580,7 @@ elif best_model["id"] in [5, 6]:
     mu_app_rad_s = mu_app_chain * (np.pi / (180.0 * 3600.0)) / 86400.0
     mu_rec_rad_s = mu_rec_chain * (np.pi / (180.0 * 3600.0)) / 86400.0
     D_max_kpc_chain = (c_const / np.sqrt(mu_app_rad_s * mu_rec_rad_s)) / 3.086e19
-    D_kpc_chain = draw_physical_distance(sys_dist, 1.0, D_max_kpc_chain)
+    D_kpc_chain = draw_physical_distance(sys_dist, args.sys_dist_std, D_max_kpc_chain)
     D_m_chain = D_kpc_chain * 3.086e19
 
     beta_app_a_chain = mu_app_rad_s * D_m_chain / c_const
@@ -1598,7 +1610,7 @@ if best_model["id"] in [3, 4]:
     mu_app_1_rad_s = mu_app_1_chain * (np.pi / (180.0 * 3600.0)) / 86400.0
     mu_rec_1_rad_s = mu_rec_1_chain * (np.pi / (180.0 * 3600.0)) / 86400.0
     D_max_kpc_chain = (c_const / np.sqrt(mu_app_1_rad_s * mu_rec_1_rad_s)) / 3.086e19
-    D_kpc_chain = draw_physical_distance(sys_dist, 1.0, D_max_kpc_chain)
+    D_kpc_chain = draw_physical_distance(sys_dist, args.sys_dist_std, D_max_kpc_chain)
     D_m_chain = D_kpc_chain * 3.086e19
 
     # Apparent proper motions in Phase 1 (beta_app = mu * D / c)
@@ -1659,99 +1671,99 @@ if best_model["id"] in [3, 4]:
     r_brk_n_chain = mu_rec_1_chain * (t_break_n_chain - t_ej_chain)
     r_brk_s_chain = mu_app_1_chain * (t_break_s_chain - t_ej_chain)
 
-p_Tej = compute_hdi(t_ej_chain)
-p_Tej_1s = compute_hdi(t_ej_chain, credible_mass=0.6827)
-p_v0_n = compute_hdi(mu_rec_chain)
-p_v0_n_1s = compute_hdi(mu_rec_chain, credible_mass=0.6827)
-p_v0_s = compute_hdi(mu_app_chain)
-p_v0_s_1s = compute_hdi(mu_app_chain, credible_mass=0.6827)
-p_bct = compute_hdi(bct_chain)
-p_bct_1s = compute_hdi(bct_chain, credible_mass=0.6827)
-p_beta = compute_hdi(beta_chain)
-p_beta_1s = compute_hdi(beta_chain, credible_mass=0.6827)
-p_gamma = compute_hdi(gamma_chain)
-p_gamma_1s = compute_hdi(gamma_chain, credible_mass=0.6827)
-p_gammabeta = compute_hdi(gamma_beta_chain)
-p_gammabeta_1s = compute_hdi(gamma_beta_chain, credible_mass=0.6827)
-p_theta = compute_hdi(theta_deg_chain)
-p_theta_1s = compute_hdi(theta_deg_chain, credible_mass=0.6827)
-p_delta_app = compute_hdi(delta_app_chain)
-p_delta_app_1s = compute_hdi(delta_app_chain, credible_mass=0.6827)
-p_delta_rec = compute_hdi(delta_rec_chain)
-p_delta_rec_1s = compute_hdi(delta_rec_chain, credible_mass=0.6827)
-p_mutrue = compute_hdi(mu_true_chain)
-p_mutrue_1s = compute_hdi(mu_true_chain, credible_mass=0.6827)
-p_Dmax = compute_hdi(D_max_kpc_chain)
-p_Dmax_1s = compute_hdi(D_max_kpc_chain, credible_mass=0.6827)
-p_D = compute_hdi(D_kpc_chain)
-p_D_1s = compute_hdi(D_kpc_chain, credible_mass=0.6827)
-p_dratio = compute_hdi(delta_ratio_chain)
-p_dratio_1s = compute_hdi(delta_ratio_chain, credible_mass=0.6827)
+p_Tej = compute_interval(t_ej_chain)
+p_Tej_1s = compute_interval(t_ej_chain, credible_mass=0.6827)
+p_v0_n = compute_interval(mu_rec_chain)
+p_v0_n_1s = compute_interval(mu_rec_chain, credible_mass=0.6827)
+p_v0_s = compute_interval(mu_app_chain)
+p_v0_s_1s = compute_interval(mu_app_chain, credible_mass=0.6827)
+p_bct = compute_interval(bct_chain)
+p_bct_1s = compute_interval(bct_chain, credible_mass=0.6827)
+p_beta = compute_interval(beta_chain)
+p_beta_1s = compute_interval(beta_chain, credible_mass=0.6827)
+p_gamma = compute_interval(gamma_chain)
+p_gamma_1s = compute_interval(gamma_chain, credible_mass=0.6827)
+p_gammabeta = compute_interval(gamma_beta_chain)
+p_gammabeta_1s = compute_interval(gamma_beta_chain, credible_mass=0.6827)
+p_theta = compute_interval(theta_deg_chain)
+p_theta_1s = compute_interval(theta_deg_chain, credible_mass=0.6827)
+p_delta_app = compute_interval(delta_app_chain)
+p_delta_app_1s = compute_interval(delta_app_chain, credible_mass=0.6827)
+p_delta_rec = compute_interval(delta_rec_chain)
+p_delta_rec_1s = compute_interval(delta_rec_chain, credible_mass=0.6827)
+p_mutrue = compute_interval(mu_true_chain)
+p_mutrue_1s = compute_interval(mu_true_chain, credible_mass=0.6827)
+p_Dmax = compute_interval(D_max_kpc_chain)
+p_Dmax_1s = compute_interval(D_max_kpc_chain, credible_mass=0.6827)
+p_D = compute_interval(D_kpc_chain)
+p_D_1s = compute_interval(D_kpc_chain, credible_mass=0.6827)
+p_dratio = compute_interval(delta_ratio_chain)
+p_dratio_1s = compute_interval(delta_ratio_chain, credible_mass=0.6827)
 p_pa_n = p_res[pa_n_idx]
 p_pa_n_1s = p_res_1s[pa_n_idx]
 p_pa_s = p_res[pa_s_idx]
 p_pa_s_1s = p_res_1s[pa_s_idx]
 
-p_beta_app_a = compute_hdi(beta_app_a_chain)
-p_beta_app_a_1s = compute_hdi(beta_app_a_chain, credible_mass=0.6827)
-p_beta_app_r = compute_hdi(beta_app_r_chain)
-p_beta_app_r_1s = compute_hdi(beta_app_r_chain, credible_mass=0.6827)
+p_beta_app_a = compute_interval(beta_app_a_chain)
+p_beta_app_a_1s = compute_interval(beta_app_a_chain, credible_mass=0.6827)
+p_beta_app_r = compute_interval(beta_app_r_chain)
+p_beta_app_r_1s = compute_interval(beta_app_r_chain, credible_mass=0.6827)
 
 avg_pa_chain = (flat_samples[:, pa_n_idx] + flat_samples[:, pa_s_idx]) / 2.0
-p_avg_pa = compute_hdi(avg_pa_chain)
-p_avg_pa_1s = compute_hdi(avg_pa_chain, credible_mass=0.6827)
+p_avg_pa = compute_interval(avg_pa_chain)
+p_avg_pa_1s = compute_interval(avg_pa_chain, credible_mass=0.6827)
 
 if best_model["id"] in [3, 4]:
-    p_tb_n = compute_hdi(t_break_n_chain)
-    p_tb_n_1s = compute_hdi(t_break_n_chain, credible_mass=0.6827)
-    p_tb_s = compute_hdi(t_break_s_chain)
-    p_tb_s_1s = compute_hdi(t_break_s_chain, credible_mass=0.6827)
-    p_v1_n = compute_hdi(mu_rec_1_chain)
-    p_v1_n_1s = compute_hdi(mu_rec_1_chain, credible_mass=0.6827)
-    p_v1_s = compute_hdi(mu_app_1_chain)
-    p_v1_s_1s = compute_hdi(mu_app_1_chain, credible_mass=0.6827)
-    p_r_brk_n = compute_hdi(r_brk_n_chain)
-    p_r_brk_n_1s = compute_hdi(r_brk_n_chain, credible_mass=0.6827)
-    p_r_brk_s = compute_hdi(r_brk_s_chain)
-    p_r_brk_s_1s = compute_hdi(r_brk_s_chain, credible_mass=0.6827)
-    p_beta_2_a = compute_hdi(beta_2_app_chain)
-    p_beta_2_a_1s = compute_hdi(beta_2_app_chain, credible_mass=0.6827)
-    p_gamma_2_a = compute_hdi(gamma_2_app_chain)
-    p_gamma_2_a_1s = compute_hdi(gamma_2_app_chain, credible_mass=0.6827)
-    p_ratio_a = compute_hdi(decel_ratio_app_chain)
-    p_ratio_a_1s = compute_hdi(decel_ratio_app_chain, credible_mass=0.6827)
-    p_beta_2_r = compute_hdi(beta_2_rec_chain)
-    p_beta_2_r_1s = compute_hdi(beta_2_rec_chain, credible_mass=0.6827)
-    p_gamma_2_r = compute_hdi(gamma_2_rec_chain)
-    p_gamma_2_r_1s = compute_hdi(gamma_2_rec_chain, credible_mass=0.6827)
-    p_ratio_r = compute_hdi(decel_ratio_rec_chain)
-    p_ratio_r_1s = compute_hdi(decel_ratio_rec_chain, credible_mass=0.6827)
-    p_beta_app_1a = compute_hdi(beta_app_1a_chain)
-    p_beta_app_1a_1s = compute_hdi(beta_app_1a_chain, credible_mass=0.6827)
-    p_beta_app_1r = compute_hdi(beta_app_1r_chain)
-    p_beta_app_1r_1s = compute_hdi(beta_app_1r_chain, credible_mass=0.6827)
-    p_beta_app_2a = compute_hdi(beta_app_2a_chain)
-    p_beta_app_2a_1s = compute_hdi(beta_app_2a_chain, credible_mass=0.6827)
-    p_beta_app_2r = compute_hdi(beta_app_2r_chain)
-    p_beta_app_2r_1s = compute_hdi(beta_app_2r_chain, credible_mass=0.6827)
+    p_tb_n = compute_interval(t_break_n_chain)
+    p_tb_n_1s = compute_interval(t_break_n_chain, credible_mass=0.6827)
+    p_tb_s = compute_interval(t_break_s_chain)
+    p_tb_s_1s = compute_interval(t_break_s_chain, credible_mass=0.6827)
+    p_v1_n = compute_interval(mu_rec_1_chain)
+    p_v1_n_1s = compute_interval(mu_rec_1_chain, credible_mass=0.6827)
+    p_v1_s = compute_interval(mu_app_1_chain)
+    p_v1_s_1s = compute_interval(mu_app_1_chain, credible_mass=0.6827)
+    p_r_brk_n = compute_interval(r_brk_n_chain)
+    p_r_brk_n_1s = compute_interval(r_brk_n_chain, credible_mass=0.6827)
+    p_r_brk_s = compute_interval(r_brk_s_chain)
+    p_r_brk_s_1s = compute_interval(r_brk_s_chain, credible_mass=0.6827)
+    p_beta_2_a = compute_interval(beta_2_app_chain)
+    p_beta_2_a_1s = compute_interval(beta_2_app_chain, credible_mass=0.6827)
+    p_gamma_2_a = compute_interval(gamma_2_app_chain)
+    p_gamma_2_a_1s = compute_interval(gamma_2_app_chain, credible_mass=0.6827)
+    p_ratio_a = compute_interval(decel_ratio_app_chain)
+    p_ratio_a_1s = compute_interval(decel_ratio_app_chain, credible_mass=0.6827)
+    p_beta_2_r = compute_interval(beta_2_rec_chain)
+    p_beta_2_r_1s = compute_interval(beta_2_rec_chain, credible_mass=0.6827)
+    p_gamma_2_r = compute_interval(gamma_2_rec_chain)
+    p_gamma_2_r_1s = compute_interval(gamma_2_rec_chain, credible_mass=0.6827)
+    p_ratio_r = compute_interval(decel_ratio_rec_chain)
+    p_ratio_r_1s = compute_interval(decel_ratio_rec_chain, credible_mass=0.6827)
+    p_beta_app_1a = compute_interval(beta_app_1a_chain)
+    p_beta_app_1a_1s = compute_interval(beta_app_1a_chain, credible_mass=0.6827)
+    p_beta_app_1r = compute_interval(beta_app_1r_chain)
+    p_beta_app_1r_1s = compute_interval(beta_app_1r_chain, credible_mass=0.6827)
+    p_beta_app_2a = compute_interval(beta_app_2a_chain)
+    p_beta_app_2a_1s = compute_interval(beta_app_2a_chain, credible_mass=0.6827)
+    p_beta_app_2r = compute_interval(beta_app_2r_chain)
+    p_beta_app_2r_1s = compute_interval(beta_app_2r_chain, credible_mass=0.6827)
 
 if best_model["id"] in [5, 6]:
-    p_rmax_n = compute_hdi(r_max_n_chain)
-    p_rmax_n_1s = compute_hdi(r_max_n_chain, credible_mass=0.6827)
-    p_rmax_s = compute_hdi(r_max_s_chain)
-    p_rmax_s_1s = compute_hdi(r_max_s_chain, credible_mass=0.6827)
-    p_tau_n = compute_hdi(tau_n_chain)
-    p_tau_n_1s = compute_hdi(tau_n_chain, credible_mass=0.6827)
-    p_tau_s = compute_hdi(tau_s_chain)
-    p_tau_s_1s = compute_hdi(tau_s_chain, credible_mass=0.6827)
-    p_mu_final_r = compute_hdi(mu_final_r_chain)
-    p_mu_final_r_1s = compute_hdi(mu_final_r_chain, credible_mass=0.6827)
-    p_mu_final_a = compute_hdi(mu_final_a_chain)
-    p_mu_final_a_1s = compute_hdi(mu_final_a_chain, credible_mass=0.6827)
-    p_beta_final_r = compute_hdi(beta_app_final_r_chain)
-    p_beta_final_r_1s = compute_hdi(beta_app_final_r_chain, credible_mass=0.6827)
-    p_beta_final_a = compute_hdi(beta_app_final_a_chain)
-    p_beta_final_a_1s = compute_hdi(beta_app_final_a_chain, credible_mass=0.6827)
+    p_rmax_n = compute_interval(r_max_n_chain)
+    p_rmax_n_1s = compute_interval(r_max_n_chain, credible_mass=0.6827)
+    p_rmax_s = compute_interval(r_max_s_chain)
+    p_rmax_s_1s = compute_interval(r_max_s_chain, credible_mass=0.6827)
+    p_tau_n = compute_interval(tau_n_chain)
+    p_tau_n_1s = compute_interval(tau_n_chain, credible_mass=0.6827)
+    p_tau_s = compute_interval(tau_s_chain)
+    p_tau_s_1s = compute_interval(tau_s_chain, credible_mass=0.6827)
+    p_mu_final_r = compute_interval(mu_final_r_chain)
+    p_mu_final_r_1s = compute_interval(mu_final_r_chain, credible_mass=0.6827)
+    p_mu_final_a = compute_interval(mu_final_a_chain)
+    p_mu_final_a_1s = compute_interval(mu_final_a_chain, credible_mass=0.6827)
+    p_beta_final_r = compute_interval(beta_app_final_r_chain)
+    p_beta_final_r_1s = compute_interval(beta_app_final_r_chain, credible_mass=0.6827)
+    p_beta_final_a = compute_interval(beta_app_final_a_chain)
+    p_beta_final_a_1s = compute_interval(beta_app_final_a_chain, credible_mass=0.6827)
 
 report_lines = []
 _report_tag = "WITH LIMITS" if args.include_limits else "WITHOUT LIMITS"
@@ -1763,12 +1775,12 @@ report_lines.append(
 )
 report_lines.append(f"Data Points Used (N_data)     : {num_obs_total}")
 report_lines.append(f"Optimized BIC                 : {best_model['bic']:.2f}")
-hdi_pct = int(round(getattr(args, "hdi_prob", 0.90) * 100))
-report_lines.append(f"Credible Interval Bounds      : {hdi_pct}% HDI (primary) & 68.3% HDI (1-sigma equivalent)")
+ci_pct = int(round(getattr(args, "ci_prob", 0.90) * 100))
+report_lines.append(f"Credible Interval Bounds      : {ci_pct}% (primary) & 68.3% (1-sigma equivalent), equal-tailed percentiles about the median")
 if getattr(args, "enforce_subluminal", False):
     report_lines.append(f"Physical Velocity Constraint  : Subluminal (beta <= {getattr(args, 'max_beta', 1.0):.2f} c at D = {getattr(args, 'sys_dist', 9.4):.1f} kpc)")
 else:
-    report_lines.append(f"Physical Velocity Constraint  : Unconstrained (D = {getattr(args, 'sys_dist', 9.4):.1f} +/- 1.0 kpc, no artificial capping)")
+    report_lines.append(f"Physical Velocity Constraint  : Unconstrained (D = {getattr(args, 'sys_dist', 9.4):.1f} +/- {args.sys_dist_std:.1f} kpc, no artificial capping)")
 if args.include_limits:
     report_lines.append(f"Upper Limit Penalty Sigma     : {getattr(args, 'ul_sigma', 0.05):.3f} arcsec")
 
@@ -1905,7 +1917,7 @@ report_lines.append(
 report_lines.append("\n[3] INTRINSIC RELATIVISTIC KINEMATICS & JET GEOMETRY")
 report_lines.append("-" * 70)
 report_lines.append(
-    f"Physical Distance (D <= D_max)    : {p_D[1]:>8.2f} + {p_D[2]-p_D[1]:.2f} - {p_D[1]-p_D[0]:.2f} kpc (prior: {sys_dist:.1f} +/- 1.0 kpc, 1-sigma: + {p_D_1s[2]-p_D[1]:.2f} - {p_D[1]-p_D_1s[0]:.2f})"
+    f"Physical Distance (D <= D_max)    : {p_D[1]:>8.2f} + {p_D[2]-p_D[1]:.2f} - {p_D[1]-p_D[0]:.2f} kpc (prior: {sys_dist:.1f} +/- {args.sys_dist_std:.1f} kpc, 1-sigma: + {p_D_1s[2]-p_D[1]:.2f} - {p_D[1]-p_D_1s[0]:.2f})"
 )
 report_lines.append(
     f"Derived beta * cos(theta)         : {p_bct[1]:>8.4f} + {p_bct[2]-p_bct[1]:.4f} - {p_bct[1]-p_bct[0]:.4f} (1-sigma: + {p_bct_1s[2]-p_bct[1]:.4f} - {p_bct[1]-p_bct_1s[0]:.4f})"
@@ -2000,8 +2012,8 @@ with open(f"data/absolute_kinematics/kinematic_report{_lim_suffix}.txt", "w") as
 print(f"Saved kinematic report to {out_report_file}\n")
 
 print("\nGenerating prior-free empirical kinematics corner plot...")
-_hdi_prob = getattr(args, "hdi_prob", 0.90) if "args" in globals() else 0.90
-_q_tail = (1.0 - _hdi_prob) / 2.0
+_ci_prob = getattr(args, "ci_prob", 0.90) if "args" in globals() else 0.90
+_q_tail = (1.0 - _ci_prob) / 2.0
 corner_quantiles = [_q_tail, 0.5, 1.0 - _q_tail]
 
 mu_rec_mas = (mu_rec_1_chain if best_model["id"] in [3, 4] else mu_rec_chain) * 1000.0
@@ -2097,7 +2109,7 @@ if len(omitted_core_data) > 0:
         zorder=4,
     )
 ax.legend()
-plt.savefig("figures/kinematics/core_mixture_fit.png", dpi=300)
+plt.savefig(f"figures/kinematics/core_mixture_fit{'_corereferenced' if args.core_referenced else ''}.png", dpi=300)
 plt.close(fig_core)
 
 # -----------------------------------------------------------------------------
@@ -2484,7 +2496,7 @@ if len(omitted_core_data) > 0:
 
 ax_flux.legend(loc="best")
 plt.tight_layout()
-plt.savefig("figures/kinematics/flux_evolution_with_extrap.png", dpi=300)
+plt.savefig(f"figures/kinematics/flux_evolution_with_extrap{'_corereferenced' if args.core_referenced else ''}.png", dpi=300)
 plt.close(fig_flux)
 print("Successfully generated and saved figures/kinematics/flux_evolution_with_extrap.png")
 

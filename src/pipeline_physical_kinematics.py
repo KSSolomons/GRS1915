@@ -51,6 +51,7 @@ from scipy.special import lambertw
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from epoch_limits import EJECTION_CAMPAIGN_START, blending_limits
+from frame_offsets import apply_frame_offset, load_frame_offsets
 
 parser = argparse.ArgumentParser(description="Physical light-travel-time kinematics fits")
 parser.add_argument(
@@ -89,6 +90,12 @@ parser.add_argument(
 )
 parser.add_argument("--ul-radius", type=float, nargs="+", default=None, help="Custom limit radius per epoch (arcsec), e.g. the peel radius")
 parser.add_argument("--ul-width", type=float, nargs="+", default=None, help="Custom penalty width per epoch (arcsec), e.g. sigma_pos")
+parser.add_argument(
+    "--report",
+    default=None,
+    help="Report path (default: data/physical_kinematics_report.txt, or ..._custom_limits.txt with --ul-mjd). "
+    "The maximum-likelihood fits are saved beside it with .npz in place of .txt",
+)
 parser.add_argument("--n-starts", type=int, default=24, help="Random Nelder-Mead restarts per fit")
 parser.add_argument(
     "--jobs",
@@ -110,10 +117,26 @@ parser.add_argument(
     help="Fixed beta_0 values for --profile (default: 0.3 0.5 0.7 0.9 0.95 0.99 0.999)",
 )
 parser.add_argument(
+    "--profile-no-limits",
+    action="store_true",
+    help="Profile and MCMC the no-limits fit at --profile-distance instead of the limited baseline (needs --no-limits-run)",
+)
+parser.add_argument("--profile-distance", type=float, default=9.4, help="Distance (kpc) of the profile and MCMC configuration (default: 9.4)")
+parser.add_argument(
+    "--beta0-range",
+    type=float,
+    nargs=2,
+    default=None,
+    metavar=("LO", "HI"),
+    help="Restrict the prior on beta_0 to (LO, HI), applied to every fit and to --mcmc (default: 0.03 to 0.99995)",
+)
+parser.add_argument(
     "--mcmc",
     action="store_true",
     help="Sample posteriors with emcee for the baseline configuration (D=9.4 kpc, 1.0 x FWHM, 0.05 arcsec)",
 )
+parser.add_argument("--mcmc-models", nargs="+", default=None, help="Models to sample with --mcmc (default: all)")
+parser.add_argument("--samples-suffix", default="", help="Appended to the MCMC samples file names, e.g. _b0.99")
 parser.add_argument("--n-steps", type=int, default=10000, help="MCMC steps per walker")
 parser.add_argument("--n-walkers", type=int, default=128, help="MCMC walkers")
 parser.add_argument("--seed", type=int, default=1915, help="Random seed")
@@ -128,7 +151,7 @@ EPOCH12_TS = 1764664923  # Epoch 12 jet features are unreliable (likely artefact
 LOG_GB0_RANGE = (-1.5, 2.0)  # prior on log10(Gamma_0 beta_0): beta_0 from 0.03 to 0.99995
 TAU_RANGE = (5.0, 5000.0)  # prior on the deceleration timescales (days)
 T_COAST_RANGE = (0.0, 1000.0)  # prior on the coasting time (days)
-BASELINE_D, BASELINE_UL_SCALE, BASELINE_UL_SIGMA = 9.4, 1.0, 0.05
+BASELINE_D, BASELINE_UL_SCALE, BASELINE_UL_SIGMA = args.profile_distance, 1.0, 0.05
 
 # Blending upper limits of the blocks flagged "in_fit" in epoch_limits.py (projected beam FWHM along the jet axis)
 UL_MJD, UL_FWHM, _ = blending_limits()
@@ -142,7 +165,7 @@ if CUSTOM_LIMITS:
     UL_FWHM = np.array(args.ul_radius)  # used directly as the limit radius (ul_scale = 1)
 
 
-# 1. LOAD DATA (same parsing and core MAD filter as the absolute-kinematics pipeline)
+# 1. LOAD DATA (same parsing and frame correction as the absolute-kinematics pipeline)
 dir_path = "S-band-fits"
 files = sorted(glob.glob(os.path.join(dir_path, "*2D_Fitting*.txt")))
 
@@ -150,9 +173,11 @@ act_ra_deg = (19 + 15 / 60.0 + 11.558 / 3600.0) * 15.0
 act_dec_deg = 10 + 56 / 60.0 + 44.905 / 3600.0
 cos_dec = np.cos(np.radians(act_dec_deg))
 
+FRAME_OFFSETS = load_frame_offsets()
 core_data_raw = []
 n_data = []
 s_data = []
+no_offset = set()
 
 for f in files:
     m = re.search(r"img_(\d+)", os.path.basename(f))
@@ -187,16 +212,20 @@ for f in files:
             continue
         dx = (c["ra_deg"] - act_ra_deg) * 3600.0 * cos_dec
         dy = (c["dec_deg"] - act_dec_deg) * 3600.0
-        row = [mjd, dx, dy, c["ra_err"], c["dec_err"]]
+        # Tie the epoch to the common frame; epochs without a measured offset are left out
+        corrected = apply_frame_offset(FRAME_OFFSETS, ts, dx, dy, c["ra_err"], c["dec_err"])
+        if corrected is None:
+            no_offset.add(round(mjd, 2))
+            continue
+        row = [mjd, *corrected]
         if 288.7979 < c["ra_deg"] < 288.7982:
             core_data_raw.append(row)
         elif mjd > EJECTION_CAMPAIGN_START and ts != EPOCH12_TS:
             (n_data if dy > 0 else s_data).append(row)
 
-temp_core = np.array(core_data_raw)
-dist = np.hypot(temp_core[:, 1] - np.median(temp_core[:, 1]), temp_core[:, 2] - np.median(temp_core[:, 2]))
-mad = np.median(np.abs(dist - np.median(dist)))
-core_data = temp_core[dist <= max(5 * mad, 0.4)]
+if no_offset:
+    print(f"No frame offset for MJD {sorted(no_offset)}; those epochs are left out")
+core_data = np.array(sorted(core_data_raw))
 n_data = np.array(sorted(n_data))
 s_data = np.array(sorted(s_data))
 num_obs_total = 2 * (len(core_data) + len(n_data) + len(s_data))
@@ -278,6 +307,10 @@ def beta_to_lg_gb(beta):
     return np.log10(beta / np.sqrt(1.0 - beta**2))
 
 
+if args.beta0_range is not None:
+    LOG_GB0_RANGE = tuple(float(beta_to_lg_gb(b)) for b in args.beta0_range)
+
+
 def unpack(model, p):
     d = dict(zip(MODELS[model], p))
     d["beta0"] = gb_to_beta(10 ** d["lg_gb0"])
@@ -357,10 +390,14 @@ def log_prob(p, model, dist_kpc, ul_scale, ul_sigma, include_limits):
 
 
 # 4. MAXIMUM-LIKELIHOOD FITS WITH RESTARTS
+# Random starts in lg_gb0 from (-0.5, 0.7), or from the whole prior when --beta0-range lies outside that window
+LG_START = (max(-0.5, LOG_GB0_RANGE[0]), min(0.7, LOG_GB0_RANGE[1]))
+if LG_START[0] >= LG_START[1]:
+    LG_START = LOG_GB0_RANGE
 def random_start(model):
     p = {
         "t_ej": rng.uniform(60450.0, 60720.0),
-        "lg_gb0": rng.uniform(-0.5, 0.7),
+        "lg_gb0": rng.uniform(*LG_START),
         "theta": rng.uniform(50.0, 85.0),
         "tau": 10 ** rng.uniform(1.7, 3.3),
         "tau_a": 10 ** rng.uniform(1.7, 3.3),
@@ -478,6 +515,8 @@ def limit_labels(ul_scale, ul_sigma, use_ul):
 
 
 def is_baseline(r):
+    if args.profile_no_limits:
+        return not r["limits"] and r["D"] == BASELINE_D
     if not (r["limits"] and r["D"] == BASELINE_D):
         return False
     return CUSTOM_LIMITS or (r["ul_scale"] == BASELINE_UL_SCALE and r["ul_sigma"] == BASELINE_UL_SIGMA)
@@ -580,20 +619,43 @@ for row in results:
     lines.append("")
 
 os.makedirs("data", exist_ok=True)
-report_file = "data/physical_kinematics_report_custom_limits.txt" if CUSTOM_LIMITS else "data/physical_kinematics_report.txt"
+report_file = args.report or ("data/physical_kinematics_report_custom_limits.txt" if CUSTOM_LIMITS else "data/physical_kinematics_report.txt")
+os.makedirs(os.path.dirname(report_file) or ".", exist_ok=True)
 with open(report_file, "w") as fp:
     fp.write("\n".join(lines) + "\n")
 print("\n".join(lines))
 print(f"Saved report to {report_file}")
 
+# Every maximum-likelihood fit, keyed c<config>_<model>_<field>; config arrays give the grid
+fits_file = os.path.splitext(report_file)[0] + ".npz"
+store = {
+    "models": np.array(list(MODELS)),
+    "D": np.array([r["D"] for r in results]),
+    "ul_scale": np.array([r["ul_scale"] for r in results]),
+    "ul_sigma": np.array([np.mean(r["ul_sigma"]) for r in results]),
+    "limits": np.array([r["limits"] for r in results]),
+    "ul_mjd": np.array(UL_MJD),
+    "ul_radius": np.array(UL_FWHM),
+    "n_data": num_obs_total,
+}
+for i, row in enumerate(results):
+    for model, f in row["fits"].items():
+        store[f"c{i}_{model}_names"] = np.array(MODELS[model])
+        store[f"c{i}_{model}_p"] = f["p"]
+        store[f"c{i}_{model}_lnL"] = f["ll"]
+        store[f"c{i}_{model}_bic"] = f["bic"]
+        store[f"c{i}_{model}_k"] = f["k"]
+np.savez(fits_file, **store)
+print(f"Saved fits to {fits_file}")
+
 
 # 7. OPTIONAL PROFILE LIKELIHOOD IN beta_0 AT THE BASELINE CONFIGURATION
 if args.profile:
     base = next(r for r in results if is_baseline(r))
-    base_args = (BASELINE_D, base["ul_scale"], base["ul_sigma"], True)
+    base_args = (BASELINE_D, base["ul_scale"], base["ul_sigma"], base["limits"])
     prof = []
     prof.append("\nPROFILE LIKELIHOOD IN beta_0 (D = {} kpc, UL = {}, sigma_UL = {}\")".format(
-        BASELINE_D, *limit_labels(base["ul_scale"], base["ul_sigma"], True)))
+        BASELINE_D, *limit_labels(base["ul_scale"], base["ul_sigma"], base["limits"])))
     prof.append("Each row refits all other parameters with beta_0 held fixed. dlnL is relative to the free fit; values of")
     prof.append("beta_0 with 2 dlnL > -3.84 lie inside the 95% profile interval (one parameter), so a flat profile up to")
     prof.append("beta_0 -> 1 means only a lower limit, and a profile that stays within that bound everywhere means no constraint.")
@@ -637,10 +699,12 @@ if args.mcmc:
     import emcee
 
     base = next(r for r in results if is_baseline(r))
-    base_args = (BASELINE_D, base["ul_scale"], base["ul_sigma"], True)
-    base_txt = "UL={}, sigma_UL={}\"".format(*limit_labels(base["ul_scale"], base["ul_sigma"], True))
+    base_args = (BASELINE_D, base["ul_scale"], base["ul_sigma"], base["limits"])
+    base_txt = "UL={}, sigma_UL={}\"".format(*limit_labels(base["ul_scale"], base["ul_sigma"], base["limits"]))
     hdi_lines = []
     for model, f in base["fits"].items():
+        if args.mcmc_models and model not in args.mcmc_models:
+            continue
         ndim = len(MODELS[model])
         scale = np.array([{"t_ej": 5.0, "lg_gb0": 0.01, "theta": 1.0}.get(n, 0.01 * max(abs(v), 1.0)) for n, v in zip(MODELS[model], f["p"])])
         p0 = []
@@ -665,7 +729,7 @@ if args.mcmc:
             [[unpack(model, p)["beta0"], dv["gamma_beta_end_a"], dv["gamma_beta_end_r"]] for p, dv in zip(sub, dvs)]
         )
         np.savez(
-            f"data/physical_kinematics_samples_{model}.npz",
+            f"data/physical_kinematics_samples_{model}{'_nolimits' if args.profile_no_limits else ''}{args.samples_suffix}.npz",
             samples=chain, names=MODELS[model], autocorr=tau_ac,
             derived_samples=derived_samples, derived_names=derived_names,
         )

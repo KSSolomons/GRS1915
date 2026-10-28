@@ -1,0 +1,71 @@
+==================================================================================================================================
+                                   PHYSICAL LIGHT-TRAVEL-TIME KINEMATICS: MODEL COMPARISON GRID                                   
+==================================================================================================================================
+N_data = 52 (12 core, 7 N, 7 S epochs; Epoch 12 jets excluded)
+BIC = k ln N - 2 ln L at the maximum likelihood; dBIC relative to the best model in each row.
+UL penalty = contribution of the beam upper-limit term to ln L at the best fit (0 = limits satisfied).
+Limits: MJD 60736.11: r < 2.423", MJD 60758.07: r < 2.460" (x the UL scale; from epoch_limits.py)
+Priors: log10(Gb0) in (-1.5, 2.0), tau in (5.0, 5000.0) d, theta in (0, 90) deg, T_ej in (60000, 60800).
+Columns: Gb0 = Gamma_0 beta_0 at launch; Gb_end_a/r = Gamma beta of the approaching/receding ejecton at the
+  last tracked epoch; rinf_a/r = asymptotic projected separation (arcsec) as t' -> infinity, NOT the separation
+  at the last epoch; edge = parameters at a prior edge (b0->1: Gb0 at the top of its range, so beta_0 is only a
+  lower limit; th->90: no light-travel asymmetry; tau_x->max: deceleration not constrained).
+
+    D        UL  sigUL | model        k      lnL   dBIC  ULpen |     T_ej   beta0  theta   tau_a   tau_r     Gb0 Gb_end_a Gb_end_r rinf_a rinf_r | edge
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+  9.4  1.0xFWHM   0.05 | ballistic    8    55.41   1.20  -0.49 |  60504.5  0.4841   73.9     inf     inf    0.55     0.55     0.55     --     -- | -
+  9.4  1.0xFWHM   0.05 | decel_sym    9    57.99   0.00  -0.16 |  60616.6  1.0000   73.8     345     345  100.00     0.30     0.46   6.10   6.10 | b0->1
+  9.4  1.0xFWHM   0.05 | decel_asym  10    58.21   3.50  -0.11 |  60613.1  1.0000   76.7     347     289  100.00     0.32     0.35   6.22   5.17 | b0->1
+
+  9.4      none     -- | ballistic    8    58.77   0.00   0.00 |  60372.3  0.3666   68.0     inf     inf    0.39     0.39     0.39     --     -- | -
+  9.4      none     -- | decel_sym    9    59.51   2.46   0.00 |  60575.2  0.9230   69.8     347     347    2.40     0.24     0.38   5.53   5.53 | -
+  9.4      none     -- | decel_asym  10    59.70   6.03   0.00 |  60481.8  0.6193   57.8     766    5000    0.79     0.28     0.70   7.40  48.26 | tau_r->max
+
+
+PROFILE LIKELIHOOD IN beta_0 (D = 9.4 kpc, UL = none, sigma_UL = --")
+Each row refits all other parameters with beta_0 held fixed. dlnL is relative to the free fit; values of
+beta_0 with 2 dlnL > -3.84 lie inside the 95% profile interval (one parameter), so a flat profile up to
+beta_0 -> 1 means only a lower limit, and a profile that stays within that bound everywhere means no constraint.
+model         beta0     Gb0       lnL   2dlnL     T_ej  theta   tau_a   tau_r Gb_end_a Gb_end_r | edge
+ballistic    0.2000    0.20     38.77  -40.00  60000.0   66.6     inf     inf     0.20     0.20 | -
+ballistic    0.2500    0.26     56.00   -5.54  60076.2   57.7     inf     inf     0.26     0.26 | -
+ballistic    0.3000    0.31     57.90   -1.74  60241.1   63.2     inf     inf     0.31     0.31 | -
+ballistic    0.3300    0.35     58.51   -0.52  60308.5   65.6     inf     inf     0.35     0.35 | -
+ballistic    0.3500    0.37     58.71   -0.11  60345.4   67.0     inf     inf     0.37     0.37 | -
+ballistic    0.3700    0.40     58.77   -0.00  60377.4   68.2     inf     inf     0.40     0.40 | -
+ballistic    0.4000    0.44     58.56   -0.42  60418.2   69.9     inf     inf     0.44     0.44 | -
+ballistic    0.4500    0.50     57.48   -2.58  60472.2   72.1     inf     inf     0.50     0.50 | -
+ballistic    0.5000    0.58     55.51   -6.52  60514.0   73.9     inf     inf     0.58     0.58 | -
+ballistic    0.6000    0.75     48.95  -19.64  60574.7   76.5     inf     inf     0.75     0.75 | -
+ballistic    0.7000    0.98     38.97  -39.60  60616.8   78.4     inf     inf     0.98     0.98 | -
+ballistic    0.9990   22.34    -10.96 -139.46  60690.5   81.9     inf     inf    22.34    22.34 | -
+ballistic      free    0.39     58.77    0.00  60372.3   68.0     inf     inf     0.39     0.39 | -
+
+decel_sym    0.2000    0.20     30.67  -57.69  60000.0   74.1    4791    4791     0.16     0.17 | -
+decel_sym    0.2500    0.26     51.62  -15.78  60000.0   56.9    5000    5000     0.20     0.22 | tau_a->max,tau_r->max
+decel_sym    0.3000    0.31     56.52   -5.99  60170.8   59.1    5000    5000     0.26     0.27 | tau_a->max,tau_r->max
+decel_sym    0.3300    0.35     57.71   -3.62  60258.3   62.4    5000    5000     0.29     0.30 | tau_a->max,tau_r->max
+decel_sym    0.3500    0.37     58.25   -2.52  60304.0   64.3    5000    5000     0.31     0.33 | tau_a->max,tau_r->max
+decel_sym    0.3700    0.40     58.62   -1.78  60342.6   65.8    5000    5000     0.34     0.35 | tau_a->max,tau_r->max
+decel_sym    0.4000    0.44     58.87   -1.28  60389.8   67.8    4878    4878     0.37     0.39 | -
+decel_sym    0.4500    0.50     59.00   -1.03  60420.5   68.0    2194    2194     0.36     0.39 | -
+decel_sym    0.5000    0.58     59.11   -0.81  60446.7   68.3    1412    1412     0.34     0.39 | -
+decel_sym    0.6000    0.75     59.28   -0.46  60489.1   68.7     822     822     0.31     0.39 | -
+decel_sym    0.7000    0.98     59.41   -0.21  60522.2   69.1     578     578     0.29     0.39 | -
+decel_sym    0.9990   22.34     59.50   -0.02  60588.9   70.0     305     305     0.22     0.38 | -
+decel_sym      free    2.40     59.51    0.00  60575.2   69.8     347     347     0.24     0.38 | -
+
+decel_asym   0.2000    0.20     30.15  -59.10  60000.0   89.5    5000    2494     0.17     0.14 | th->90,tau_a->max
+decel_asym   0.2500    0.26     53.01  -13.39  60042.2   86.0    5000    1184     0.21     0.12 | tau_a->max
+decel_asym   0.3000    0.31     56.52   -6.37  60174.1   59.9    5000    4460     0.26     0.27 | tau_a->max
+decel_asym   0.3300    0.35     57.70   -4.00  60258.3   62.4    5000    4997     0.29     0.30 | tau_a->max,tau_r->max
+decel_asym   0.3500    0.37     58.25   -2.90  60304.0   64.3    4998    5000     0.31     0.33 | tau_a->max,tau_r->max
+decel_asym   0.3700    0.40     58.62   -2.16  60342.6   65.8    5000    4999     0.34     0.35 | tau_a->max,tau_r->max
+decel_asym   0.4000    0.44     58.91   -1.59  60378.3   65.9    3682    5000     0.35     0.39 | tau_r->max
+decel_asym   0.4500    0.50     59.24   -0.93  60408.7   63.1    1964    5000     0.34     0.45 | tau_r->max
+decel_asym   0.5000    0.58     59.48   -0.45  60434.5   61.1    1344    5000     0.32     0.52 | tau_r->max
+decel_asym   0.6000    0.75     59.70   -0.01  60475.3   58.2     824    5000     0.29     0.67 | tau_r->max
+decel_asym   0.7000    0.98     59.67   -0.06  60512.7   60.7     578    1228     0.26     0.62 | -
+decel_asym   0.9990   22.34     59.52   -0.36  60587.6   68.5     304     325     0.21     0.41 | -
+decel_asym     free    0.79     59.70    0.00  60481.8   57.8     766    5000     0.28     0.70 | tau_r->max
+

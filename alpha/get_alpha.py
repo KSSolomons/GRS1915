@@ -7,12 +7,14 @@ images of each observation, then fits a single power law across the band, and
 writes one row per epoch. There is no cross-band or joint fitting: the JetKAT
 campaign is S-band (2.68-3.44 GHz in the channel images) throughout.
 
-What alpha describes: the core fit is a beam-shaped Gaussian at the catalogue
-position, so in Epochs 1-4, where the ejecta are blended with the core, alpha is
-that of the core and ejecta together, and from Epoch 5 it is that of the core.
-With LOBE_POSITIONS_FILE set (see below) the resolved lobes are fitted at the
-same time as extra fixed-position components, which removes their flux from the
-core region and gives each lobe its own spectral index.
+What alpha describes: the core fit is a beam-shaped Gaussian held at the core
+position measured in that epoch's MFS image (row C of LOBE_POSITIONS_FILE, or
+the catalogue position if the epoch has none), so in Epochs 1-4, where the
+ejecta are blended with the core, alpha is that of the core and ejecta together,
+and from Epoch 5 it is that of the core. With LOBE_POSITIONS_FILE set (see
+below) the resolved lobes are fitted at the same time as extra fixed-position
+components, which removes their flux from the core region and gives each lobe
+its own spectral index.
 
 Run inside CASA:
 
@@ -91,13 +93,26 @@ to make filtering straightforward.
 
 Lobe components
 ---------------
-LOBE_POSITIONS_FILE lists, per scheduling block, the positions of the resolved
-lobes from the MFS fits (written by make_lobe_positions.py). For an epoch listed
-there, every channel image is fitted with the core plus one beam-shaped Gaussian
-per lobe, the lobes held at their listed positions, and the fit region is
-enlarged to cover them. The lobe spectra are written to OUTPUT_LOBES; the core
+LOBE_POSITIONS_FILE lists, per scheduling block, the positions measured in the
+MFS image (written by make_lobe_positions.py): the core (C), the resolved lobes
+(N, S) and the reference sources (REF1, ...). Every component is held at its
+listed position in the channel images. This matters: the images are offset from
+the catalogue frame by 0.3-0.9 arcsec, and Epoch 4 by 1.6 arcsec, and a
+beam-shaped Gaussian held at the wrong position loses flux, more so at high
+frequency because the beam shrinks, which biases the flux low and alpha steep.
+For an epoch with lobes listed, every channel image is fitted with the core
+plus one beam-shaped Gaussian per lobe, and the fit region is enlarged to cover
+them. The lobe spectra are written to OUTPUT_LOBES; the core
 rows of OUTPUT_EPOCHS keep their format. Set LOBE_POSITIONS_FILE = None to
 reproduce the core-only fits.
+
+Reference sources
+-----------------
+REFERENCE_SOURCES are compact, constant field sources measured in every channel
+image in the same way, each in its own fit region. Their per-channel fluxes go
+to OUTPUT_REFERENCE; inband_systematics.py (run locally, no CASA) uses them to
+measure the channel-to-channel calibration systematic and to test the core
+spectra for curvature. Set REFERENCE_SOURCES = [] to skip them.
 
 Author: prepared for S. Motta, 2026-08-02.
 """
@@ -114,6 +129,14 @@ import numpy as np
 # ===========================================================================
 
 # --- Where the observations are ---------------------------------------------
+# --- JetKAT campaign layout (mode c, the default) ----------------------------
+# One folder per epoch named <blockid>_S<n> directly under CAMPAIGN_ROOT, with
+# the channel images in its IMAGES/ subfolder. Only S numbers in
+# CAMPAIGN_EPOCHS are used; S13 and later (and names such as *_S1_old) are
+# ignored because the number must be the whole suffix.
+CAMPAIGN_ROOT   = '.'               # the GRS1915 folder on ilifu
+CAMPAIGN_EPOCHS = range(1, 13)      # S1 to S12
+
 ROOTS      = ['.']        # directories or glob patterns, one entry per line
 RECURSIVE  = True         # walk below each root (handles IMAGES/ subdirs)
 MAX_DEPTH  = 3            # how far below each root to descend; None for no limit
@@ -144,9 +167,11 @@ MASK_TOKEN   = None
 SOURCE_RA  = '19h15m11.558s'
 SOURCE_DEC = '+10d56m44.905s'
 
-# Fixing the centroid makes each channel a forced photometry. At high signal to
-# noise it makes no practical difference; at low signal to noise a free centroid
-# locks onto noise peaks and biases the flux high, so True is the safe default.
+# Fixing the centroid makes each channel a forced photometry: at low signal to
+# noise a free centroid locks onto noise peaks and biases the flux high, so True
+# is the safe default. The position held is the one measured in the epoch's MFS
+# image (LOBE_POSITIONS_FILE); SOURCE_RA/SOURCE_DEC are the fallback and the
+# centre of the fit region.
 FIX_POSITION = True
 
 PEAK_ESTIMATE_JY = 0.001
@@ -164,6 +189,14 @@ SEED_ZERO_LEVEL_FROM_MAP = True
 
 # --- Spectral fit ------------------------------------------------------------
 MIN_CHANNELS = 4          # epochs with fewer usable channels are not fitted
+# Channels left out of the power-law fits (core and lobes); they are still measured
+# and written to the channel files. Channel 0 (2.68 GHz) reads ~3% low in every
+# source and epoch, a gain error shared with the reference source.
+DROP_CHANNELS = (0,)
+# A channel whose flux error exceeds this multiple of the epoch's median channel
+# error is left out of the fits (a nearly fully flagged channel, e.g. Epoch 9
+# channel 7 at 3.44 GHz with a 42 arcsec beam).
+MAX_ERR_RATIO = 5.0
 REF_FREQ_GHZ = None       # None -> geometric mean of the channels of that epoch
 # The formal errors describe the map noise alone. Where the scatter about the
 # power law exceeds it, chi2/dof > 1 indicates unmodelled systematics such as
@@ -175,14 +208,30 @@ RESCALE_BY_CHI2 = True
 OUTPUT_EPOCHS   = 'inband_alpha.txt'
 OUTPUT_CHANNELS = 'inband_channel_flux.txt'
 
-# --- Lobe components ---------------------------------------------------------
-# Positions of the resolved lobes per scheduling block, from
-# make_lobe_positions.py. Epochs listed there are fitted with the core and the
-# lobes together; None (or a missing file) fits the core alone.
+# --- Component positions -----------------------------------------------------
+# Per-epoch positions from make_lobe_positions.py: core (C), lobes (N, S) and
+# reference sources. Epochs with lobes listed are fitted with the core and the
+# lobes together; None (or a missing file) fits the core alone at SOURCE_RA/DEC
+# and the reference sources at their REFERENCE_SOURCES positions.
 LOBE_POSITIONS_FILE = 'lobe_positions.txt'
 OUTPUT_LOBES        = 'inband_alpha_lobes.txt'
 # Lobe spectra with sigma_alpha (scaled) below this enter the weighted mean.
 LOBE_MEAN_MAX_ERR   = 1.0
+
+# --- Reference sources (channel-systematics check) ---------------------------
+# Compact, constant field sources measured in every channel image the same way
+# as the core (beam-shaped Gaussian at a fixed position, zero level fitted), in
+# their own fit region. Their scatter about a power law measures the
+# channel-to-channel calibration systematic that GRS 1915+105 shares. The
+# channel images are not primary-beam corrected, so the raw fluxes written here
+# still carry the frequency-dependent beam attenuation; inband_systematics.py
+# corrects for it using the separation from the pointing centre.
+#   REF1: 6.5 mJy, unresolved and constant to 0.7% rms across the 12 MFS images,
+#         6.70 arcmin from GRS 1915+105 (primary-beam attenuation ~0.89 at 3.06 GHz).
+REFERENCE_SOURCES = [
+    ('REF1', '19h14m44.703s', '+10d57m56.151s'),
+]
+OUTPUT_REFERENCE = 'inband_reference_flux.txt'
 
 # ===========================================================================
 
@@ -481,9 +530,9 @@ def _mjd(header):
         return float('nan')
 
 
-def _measure_local_noise(fits_file):
+def _measure_local_noise(fits_file, ra=SOURCE_RA, dec=SOURCE_DEC):
     region = 'annulus[[{}, {}], [{}, {}]] coord=J2000'.format(
-        SOURCE_RA, SOURCE_DEC, RMS_ANNULUS_INNER, RMS_ANNULUS_OUTER)
+        ra, dec, RMS_ANNULUS_INNER, RMS_ANNULUS_OUTER)
     try:
         stats = imstat(imagename=fits_file, region=region,
                        algorithm=RMS_ALGORITHM)
@@ -504,7 +553,7 @@ def _measure_local_noise(fits_file):
         return None, None
 
 
-LOBES = {}   # {block ID: [(label, ra, dec), ...]}, filled by run()
+LOBES = {}   # {block ID: [(label, ra, dec), ...]}, filled by run(); all components
 
 
 def _load_lobe_positions():
@@ -522,15 +571,35 @@ def _load_lobe_positions():
             if not parts or parts[0].startswith('#') or len(parts) < 4:
                 continue
             lobes.setdefault(parts[0], []).append(tuple(parts[1:4]))
-    print("Lobe positions for {} epoch(s) from {}".format(
+    print("Component positions for {} epoch(s) from {}".format(
         len(lobes), LOBE_POSITIONS_FILE))
     return lobes
 
 
-def _lobes_for(key):
-    """Lobes listed for an epoch key, which starts with the block ID."""
+def _positions_for(key):
+    """Components listed for an epoch key, which starts with the block ID."""
     m = re.match(r'(\d{8,12})', key)
     return LOBES.get(m.group(1), []) if m else []
+
+
+def _lobes_for(key):
+    """Lobes listed for an epoch (every component that is not the core or a reference)."""
+    refs = set(label for label, _ra, _dec in REFERENCE_SOURCES)
+    return [row for row in _positions_for(key) if row[0] != 'C' and row[0] not in refs]
+
+
+def _core_for(key):
+    """Core position measured in the epoch's MFS image, or the catalogue position."""
+    for label, ra, dec in _positions_for(key):
+        if label == 'C':
+            return ra, dec, True
+    return SOURCE_RA, SOURCE_DEC, False
+
+
+def _references_for(key):
+    """REFERENCE_SOURCES with each position replaced by the epoch's measured one where listed."""
+    listed = dict((label, (ra, dec)) for label, ra, dec in _positions_for(key))
+    return [(label,) + listed.get(label, (ra, dec)) for label, ra, dec in REFERENCE_SOURCES]
 
 
 def _separation_arcsec(ra, dec):
@@ -545,10 +614,58 @@ def _separation_arcsec(ra, dec):
         return 0.0
 
 
-def fit_image(fits_file, estimates_filename, lobes=()):
+def _fit_reference(fits_file, estimates_filename, ra, dec, bmaj, bmin, bpa):
+    """
+    Forced photometry of one reference source: beam-shaped Gaussian at (ra, dec)
+    with the zero level fitted, in a region of FIT_REGION_BEAM_MULTIPLE beams
+    around it and with the noise from an annulus around it.
+    Returns (flux, err, rms), or None if it cannot be measured.
+    """
+    pixel = _source_pixel(fits_file, ra, dec)
+    if pixel is None:
+        return None
+    rms, background = _measure_local_noise(fits_file, ra, dec)
+    if not rms:
+        return None
+    try:
+        with open(estimates_filename, 'w') as fh:
+            fh.write("{:.6f},{:.3f},{:.3f}, {:.4f}arcsec, {:.4f}arcsec, "
+                     "{:.3f}deg, xyabp\n".format(PEAK_ESTIMATE_JY, pixel[0],
+                                                 pixel[1], bmaj, bmin, bpa))
+        radius = (FIT_REGION_BEAM_MULTIPLE or 4.0) * max(bmaj, bmin)
+        region = ('ellipse[[{}, {}], [{:.4f}arcsec, {:.4f}arcsec], 90deg] '
+                  'coord=J2000'.format(ra, dec, radius, radius))
+        kwargs = dict(imagename=fits_file, region=region,
+                      estimates=estimates_filename,
+                      logfile='imfit_inband.log', append=True, rms=rms)
+        if FIT_ZERO_LEVEL:
+            kwargs['dooff'] = True
+            kwargs['offset'] = (background if SEED_ZERO_LEVEL_FROM_MAP
+                                and background is not None else 0.0)
+            kwargs['fixoffset'] = bool(FIX_ZERO_LEVEL)
+        result = imfit(**kwargs)
+        comp = (result or {}).get('results', {}).get('component0')
+        if not comp:
+            return None
+        flux = float(np.ravel(comp['flux']['value'])[0])
+        err = max(float(np.ravel(comp['flux']['error'])[0]), rms)
+        if not (np.isfinite(flux) and np.isfinite(err)):
+            return None
+        return flux, err, rms
+    except Exception:
+        return None
+    finally:
+        if os.path.exists(estimates_filename):
+            os.remove(estimates_filename)
+
+
+def fit_image(fits_file, estimates_filename, lobes=(), core=(SOURCE_RA, SOURCE_DEC),
+              references=None):
     """
     Fit one channel or MFS image. Returns a dict, or None if unusable.
 
+    core = (ra, dec) is where the core is held; references = [(label, ra, dec)]
+    the reference sources (default REFERENCE_SOURCES).
     lobes = [(label, ra, dec), ...] are fitted together with the core as
     beam-shaped Gaussians held at the given positions; their fluxes are returned
     under 'lobes' as {label: (flux, err)}. A lobe that cannot be placed in the
@@ -566,7 +683,7 @@ def fit_image(fits_file, estimates_filename, lobes=()):
         if not np.isfinite(nu):
             return None
 
-        pixel = _source_pixel(fits_file)
+        pixel = _source_pixel(fits_file, core[0], core[1])
         if pixel is None:
             return None
 
@@ -642,9 +759,16 @@ def fit_image(fits_file, estimates_filename, lobes=()):
             if np.isfinite(l_flux) and np.isfinite(l_err):
                 lobe_fluxes[label] = (l_flux, l_err)
 
+        ref_fluxes = {}
+        for label, ra, dec in (REFERENCE_SOURCES if references is None else references):
+            ref = _fit_reference(fits_file, estimates_filename + '.ref', ra,
+                                 dec, bmaj, bmin, bpa)
+            if ref is not None:
+                ref_fluxes[label] = ref + (_separation_arcsec(ra, dec) / 60.0,)
+
         return dict(file=base, channel=channel_index(fits_file), nu_GHz=nu,
                     bmaj=bmaj, rms=rms, zero=zero, flux=flux, err=err,
-                    mjd=_mjd(header), lobes=lobe_fluxes)
+                    mjd=_mjd(header), lobes=lobe_fluxes, refs=ref_fluxes)
     except Exception:
         return None
     finally:
@@ -792,33 +916,51 @@ def fit_lobes(key, chans, nu0, mjd):
     return out
 
 
+def _fit_channels(key, chans):
+    """Channels that enter the power-law fits: DROP_CHANNELS and error outliers removed."""
+    kept = [c for c in chans if c['channel'] not in DROP_CHANNELS]
+    if kept and MAX_ERR_RATIO:
+        median_err = float(np.median([c['err'] for c in kept]))
+        bad = [c for c in kept if c['err'] > MAX_ERR_RATIO * median_err]
+        for c in bad:
+            print("  {:<16} channel {} left out of the fits (error {:.1f} uJy, {:.0f}x the median)".format(
+                key, c['channel'], c['err'] * 1e6, c['err'] / median_err))
+        kept = [c for c in kept if c not in bad]
+    return kept
+
+
 def process_epoch(key, files, estimates):
     chans, mfs = [], None
     lobes = _lobes_for(key)
+    core_ra, core_dec, measured = _core_for(key)
+    if not measured:
+        print("  {:<16} WARNING: no measured core position listed, so the core is held "
+              "at the catalogue position".format(key))
     for path in files:
-        row = fit_image(path, estimates, lobes)
+        row = fit_image(path, estimates, lobes, (core_ra, core_dec), _references_for(key))
         if row is None:
             continue
         if row['channel'] is None:
             mfs = row
         else:
             chans.append(row)
-    if len(chans) < MIN_CHANNELS:
+    used = _fit_channels(key, chans)
+    if len(used) < MIN_CHANNELS:
         print("  {:<16} only {} usable channel(s), not fitted".format(
-            key, len(chans)))
+            key, len(used)))
         return None, chans, []
 
-    nu = [c['nu_GHz'] for c in chans]
+    nu = [c['nu_GHz'] for c in used]
     nu0 = REF_FREQ_GHZ or math.sqrt(min(nu) * max(nu))
-    fit = fit_power_law(nu, [c['flux'] for c in chans],
-                        [c['err'] for c in chans], nu0)
+    fit = fit_power_law(nu, [c['flux'] for c in used],
+                        [c['err'] for c in used], nu0)
     mjd = mfs['mjd'] if mfs else np.nanmedian([c['mjd'] for c in chans])
     snr_mfs = (mfs['flux'] / mfs['rms']) if mfs and mfs['rms'] else float('nan')
 
     if fit is None:
         print("  {:<16} power-law fit failed ({})".format(
             key, FIT_FAILURE_REASON or 'reason not recorded'))
-        return None, chans, fit_lobes(key, chans, nu0, mjd)
+        return None, chans, fit_lobes(key, used, nu0, mjd)
 
     flag = 'good' if fit['alpha_err_scaled'] < 0.2 else (
         'fair' if fit['alpha_err_scaled'] < 0.5 else 'poor')
@@ -831,7 +973,7 @@ def process_epoch(key, files, estimates):
                mfs_flux=(mfs['flux'] if mfs else float('nan')),
                mfs_err=(mfs['err'] if mfs else float('nan')),
                nu_min=min(nu), nu_max=max(nu), flag=flag)
-    return fit, chans, fit_lobes(key, chans, nu0, mjd)
+    return fit, chans, fit_lobes(key, used, nu0, mjd)
 
 
 def write_lobe_outputs(lobe_fits):
@@ -881,15 +1023,38 @@ def write_lobe_outputs(lobe_fits):
     print("Wrote {} ({} lobe spectra)".format(OUTPUT_LOBES, len(lobe_fits)))
 
 
+def write_reference_outputs(channels):
+    """Per-channel fluxes of the reference sources, for inband_systematics.py."""
+    with open(OUTPUT_REFERENCE, 'w') as fh:
+        fh.write("# Per-channel forced photometry of the reference sources (REFERENCE_SOURCES)\n")
+        fh.write("# Fitted like the core: beam-shaped Gaussian held at the position measured in the epoch's\n"
+                 "# MFS image ({}) where listed, zero level fitted.\n".format(LOBE_POSITIONS_FILE))
+        fh.write("# NOT primary-beam corrected; Sep is the separation from GRS 1915+105 in arcmin.\n")
+        fh.write("# {:<14} {:>5} {:>4} {:>10} {:>10} {:>10} {:>10} {:>7}\n".format(
+            "Epoch", "Ref", "Chan", "Freq(GHz)", "S(uJy)", "err(uJy)", "rms(uJy)", "Sep(')"))
+        n = 0
+        for key, rows in sorted(channels.items()):
+            for r in rows:
+                for label, (flux, err, rms, sep) in sorted(r.get('refs', {}).items()):
+                    fh.write("{:<16} {:>5} {:>4d} {:>10.5f} {:>10.2f} {:>10.2f} {:>10.2f} {:>7.3f}\n"
+                             .format(key, label, r['channel'], r['nu_GHz'], flux * 1e6,
+                                     err * 1e6, rms * 1e6, sep))
+                    n += 1
+    print("Wrote {} ({} reference measurements)".format(OUTPUT_REFERENCE, n))
+
+
 def write_outputs(epochs, channels):
     epochs = sorted(epochs, key=lambda e: (not np.isfinite(e['mjd']), e['mjd']))
     with open(OUTPUT_EPOCHS, 'w') as fh:
         fh.write("# In-band spectral index per epoch, S(nu) = S0 (nu/nu0)^alpha\n")
         if LOBES:
-            fh.write("# Epochs listed in {} were fitted with the core and the lobes together.\n"
+            fh.write("# Core held at the position measured in each epoch's MFS image (row C of {}); epochs\n"
+                     "# with lobes listed there were fitted with the core and the lobes together.\n"
                      .format(LOBE_POSITIONS_FILE))
-        fh.write("# Fitted in linear flux space over the channel images; all "
-                 "channels retained, including marginal ones.\n")
+        else:
+            fh.write("# Core held at the catalogue position {} {}.\n".format(SOURCE_RA, SOURCE_DEC))
+        fh.write("# Fitted in linear flux space over the channel images; channels {} left out, and any channel "
+                 "whose error exceeds {}x the epoch median.\n".format(list(DROP_CHANNELS), MAX_ERR_RATIO))
         fh.write("# A flux-scale error is common to the channels of a band and "
                  "cancels in alpha, so no systematic term is applied.\n")
         fh.write("# Err_a is the formal error; Err_a_sc rescales it by "
@@ -1001,6 +1166,8 @@ def run(epochs_files):
     write_outputs(results, channels)
     if lobe_results:
         write_lobe_outputs(lobe_results)
+    if REFERENCE_SOURCES:
+        write_reference_outputs(channels)
     return results
 
 
@@ -1051,6 +1218,57 @@ def analyse_dirs(dirs):
             key, len(files), os.path.dirname(files[0]) or '.'))
         epochs_files[key] = files
     return run(epochs_files)
+
+
+CAMPAIGN_DIR_RE = re.compile(r'_S(\d+)$', re.IGNORECASE)
+
+
+def campaign_dirs(root=None):
+    """
+    The <blockid>_S<n> folders under root with n in CAMPAIGN_EPOCHS, in epoch
+    order. Folders for other epochs are listed as skipped; a missing epoch or
+    two folders for one epoch are reported, and a duplicated epoch is left out.
+    """
+    root = root or CAMPAIGN_ROOT
+    found, skipped = {}, []
+    for name in sorted(os.listdir(root)):
+        path = os.path.join(root, name)
+        m = CAMPAIGN_DIR_RE.search(name)
+        if not (m and os.path.isdir(path)):
+            continue
+        n = int(m.group(1))
+        if n not in CAMPAIGN_EPOCHS:
+            skipped.append(name)
+            continue
+        found.setdefault(n, []).append(path)
+
+    dirs = []
+    for n in CAMPAIGN_EPOCHS:
+        paths = found.get(n, [])
+        if not paths:
+            print("WARNING: no folder for epoch S{} under {}".format(n, root))
+        elif len(paths) > 1:
+            print("WARNING: {} folders for epoch S{} ({}); epoch skipped, "
+                  "rename or move the extra one(s)".format(
+                      len(paths), n, ", ".join(os.path.basename(p) for p in paths)))
+        else:
+            dirs.append(paths[0])
+    print("Campaign folders ({} of {}): {}".format(
+        len(dirs), len(CAMPAIGN_EPOCHS),
+        ", ".join(os.path.basename(d) for d in dirs)))
+    if skipped:
+        print("Ignored (outside S{}-S{}): {}".format(
+            min(CAMPAIGN_EPOCHS), max(CAMPAIGN_EPOCHS), ", ".join(skipped)))
+    return dirs
+
+
+def analyse_campaign(root=None):
+    """Fit every epoch folder S1-S12 (CAMPAIGN_EPOCHS) under root in one run."""
+    dirs = campaign_dirs(root)
+    if not dirs:
+        print("No campaign folders found under {}".format(root or CAMPAIGN_ROOT))
+        return []
+    return analyse_dirs(dirs)
 
 
 def analyse_files(files):
@@ -1116,10 +1334,15 @@ if __name__ == '__main__':
         CHANNEL_GLOB,
         "   MASK_TOKEN={!r}".format(MASK_TOKEN) if MASK_TOKEN else ""))
 
-    mode = _ask("\nProcess (d)irectories, (f)iles directly, or "
-                "(a)utomatic search? [d/f/a]: ").strip().lower()
+    mode = _ask("\nProcess the (c)ampaign folders S{}-S{} under {!r}, "
+                "(d)irectories, (f)iles directly, or (a)utomatic search? "
+                "[c/d/f/a, Enter = c]: ".format(
+                    min(CAMPAIGN_EPOCHS), max(CAMPAIGN_EPOCHS),
+                    CAMPAIGN_ROOT)).strip().lower()
 
-    if mode == 'f':
+    if mode in ('', 'c'):
+        RESULTS = analyse_campaign()
+    elif mode == 'f':
         text = _ask("Enter file pattern (e.g., IMAGES/img*-0[0-9][0-9][0-9]"
                     "-image.fits) or space-separated filenames: ")
         items = _expand_items(text)
