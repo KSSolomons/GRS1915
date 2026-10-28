@@ -1,7 +1,7 @@
 ==================================================================================================================================
                                    PHYSICAL LIGHT-TRAVEL-TIME KINEMATICS: MODEL COMPARISON GRID                                   
 ==================================================================================================================================
-N_data = 52 (12 core, 7 N, 7 S epochs; Epoch 12 jets excluded)
+N_data = 54 (12 core, 8 N, 7 S epochs; Epoch 12 S excluded)
 BIC = k ln N - 2 ln L at the maximum likelihood; dBIC relative to the best model in each row.
 UL penalty = contribution of the beam upper-limit term to ln L at the best fit (0 = limits satisfied).
 Limits: MJD 60736.11: r < 2.423", MJD 60758.07: r < 2.460" (x the UL scale; from epoch_limits.py)
@@ -13,27 +13,27 @@ Columns: Gb0 = Gamma_0 beta_0 at launch; Gb_end_a/r = Gamma beta of the approach
 
     D        UL  sigUL | model        k      lnL   dBIC  ULpen |     T_ej   beta0  theta   tau_a   tau_r     Gb0 Gb_end_a Gb_end_r rinf_a rinf_r | edge
 -------------------------------------------------------------------------------------------------------------------------------------------------------
-  9.4  1.0xFWHM   0.05 | ballistic    8    -8.81 129.60   0.00 |  60688.7  0.9890   81.8     inf     inf    6.69     6.69     6.69     --     -- | b0->1,b0->0
-  9.4  1.0xFWHM   0.05 | decel_sym    9    57.97   0.00  -0.17 |  60615.4  0.9910   73.8     351     351    7.40     0.31     0.46   6.15   6.15 | b0->1,b0->0
-  9.4  1.0xFWHM   0.05 | decel_asym  10    58.18   3.52  -0.12 |  60612.0  0.9910   76.7     353     293    7.40     0.32     0.36   6.28   5.21 | b0->1,b0->0
+  9.4  1.0xFWHM   0.05 | ballistic    8   -12.75 132.35   0.00 |  60689.0  0.9890   81.7     inf     inf    6.69     6.69     6.69     --     -- | b0->1,b0->0
+  9.4  1.0xFWHM   0.05 | decel_sym    9    55.42   0.00  -0.17 |  60615.4  0.9910   73.7     351     351    7.40     0.27     0.41   6.14   6.14 | b0->1,b0->0
+  9.4  1.0xFWHM   0.05 | decel_asym  10    55.64   3.55  -0.12 |  60612.2  0.9910   76.6     353     295    7.40     0.28     0.31   6.27   5.23 | b0->1,b0->0
 
-  9.4      none     -- | ballistic    8    -8.81 132.68   0.00 |  60688.7  0.9890   81.8     inf     inf    6.69     6.69     6.69     --     -- | b0->1,b0->0
-  9.4      none     -- | decel_sym    9    59.50   0.00   0.00 |  60587.2  0.9890   70.0     309     309    6.69     0.22     0.38   5.30   5.30 | b0->1,b0->0
-  9.4      none     -- | decel_asym  10    59.53   3.91   0.00 |  60585.8  0.9890   68.3     308     332    6.69     0.22     0.42   5.22   5.63 | b0->1,b0->0
+  9.4      none     -- | ballistic    8   -12.75 135.42   0.00 |  60689.0  0.9890   81.7     inf     inf    6.69     6.69     6.69     --     -- | b0->1,b0->0
+  9.4      none     -- | decel_sym    9    56.95   0.00   0.00 |  60587.6  0.9890   70.0     310     310    6.69     0.20     0.33   5.31   5.31 | b0->1,b0->0
+  9.4      none     -- | decel_asym  10    56.98   3.94   0.00 |  60585.9  0.9890   68.2     309     334    6.69     0.19     0.37   5.22   5.66 | b0->1,b0->0
 
 
 MCMC POSTERIORS
 
-decel_sym (D=9.4 kpc, UL=none, sigma_UL=--"): median [16th, 84th]; max autocorr = 394 steps
-  t_ej             60583.7405  [60556.2606, 60603.5558]
-  lg_gb0               0.8471  [    0.8321,     0.8623]
-  theta               69.4501  [   65.6463,    72.2615]
-  tau                305.0490  [  285.3464,   331.6683]
-  pa_n               -41.5592  [  -43.9671,   -39.1224]
-  pa_s               -42.5995  [  -44.9864,   -40.1703]
-  theta_scatter        5.3446  [    3.9621,     7.2725]
-  x_c                 -0.1977  [   -0.2039,    -0.1915]
+decel_sym (D=9.4 kpc, UL=none, sigma_UL=--"): median [16th, 84th]; max autocorr = 350 steps
+  t_ej             60584.3391  [60557.6213, 60604.1217]
+  lg_gb0               0.8473  [    0.8323,     0.8624]
+  theta               69.4675  [   65.7316,    72.2633]
+  tau                305.7030  [  285.8540,   332.5999]
+  pa_n               -40.9904  [  -43.3723,   -38.4919]
+  pa_s               -42.5686  [  -45.0043,   -40.1333]
+  theta_scatter        5.4305  [    4.0346,     7.3854]
+  x_c                 -0.1976  [   -0.2038,    -0.1915]
   y_c                 -0.3589  [   -0.3635,    -0.3543]
-  beta0                0.9900  [    0.9893,     0.9907]  (5th percentile 0.9891)
-  gamma_beta_end_a     0.2151  [    0.1676,     0.2683]  (5th percentile 0.1392)
-  gamma_beta_end_r     0.3689  [    0.3205,     0.4256]  (5th percentile 0.2883)
+  beta0                0.9901  [    0.9894,     0.9907]  (5th percentile 0.9891)
+  gamma_beta_end_a     0.1864  [    0.1457,     0.2348]  (5th percentile 0.1222)
+  gamma_beta_end_r     0.3254  [    0.2821,     0.3766]  (5th percentile 0.2554)

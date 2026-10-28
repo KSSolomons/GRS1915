@@ -31,7 +31,7 @@ UPPER_LIMIT_BLOCKS = [
         "mjd_obs": 60686.2525,
         "rms_jy": 4.831714277465e-06,
         "rms_peeled_jy": None,  # Fill with 3GC peeled RMS
-        "s_jet_jy": 0.00984,    # ~9.8 mJy: mean of NW/SE exponential fade fits to Epochs 5-11
+        "s_jet_jy": 0.009675,   # ~9.7 mJy: mean of NW/SE fade fits (src/fit_lobe_fade.py, NW 5-12, SE 5-11); was 0.00984 (Epochs 5-11)
         "in_fit": False,        # core too bright for a limit until the peeled rms is measured
     },
     {
@@ -42,7 +42,7 @@ UPPER_LIMIT_BLOCKS = [
         "mjd_obs": 60708.2596296,
         "rms_jy": 4.831714277465e-06,
         "rms_peeled_jy": 1.061756531718e-04,  # Measured 3GC peeled RMS: 106.2 uJy/beam
-        "s_jet_jy": 0.00671,    # ~6.7 mJy: mean of NW/SE exponential fade fits to Epochs 5-11
+        "s_jet_jy": 0.006605,   # ~6.6 mJy: mean of NW/SE fade fits (src/fit_lobe_fade.py, NW 5-12, SE 5-11); was 0.00671 (Epochs 5-11)
         "in_fit": False,        # provisional peeled rms; enable once re-measured
     },
     {
@@ -53,7 +53,7 @@ UPPER_LIMIT_BLOCKS = [
         "mjd_obs": 60736.11478,
         "rms_jy": 4.831714277465e-06,
         "rms_peeled_jy": 8.11e-04,  # sigma_emp at r_lim (S_exp, 5 sigma; 0.05" grid, was 779 uJy on the 0.25" grid); was 661 uJy (injection, SE side), before that 310.1 uJy
-        "s_jet_jy": 0.00413,    # ~4.1 mJy: mean of NW/SE exponential fade fits to Epochs 5-11
+        "s_jet_jy": 0.004075,   # ~4.1 mJy: mean of NW/SE fade fits (src/fit_lobe_fade.py, NW 5-12, SE 5-11); was 0.00413 (Epochs 5-11)
         "r_lim_arcsec": 2.20,   # limit radius, S_exp, 5 sigma, from S >= 5 sigma_emp(r) (simple_limits.py, 0.05" grid; 2.25 on the 0.25" grid); injection gave 2.25/2.50
         "sigma_pos_arcsec": 0.369,  # b / (2 SNR) at r_lim
         "measured": {  # {threshold (sigma): {S / S_exp: (r_lim, sigma_pos, sigma_emp in Jy) or None}}; data/peel_regions/limits_ep34_simple.txt
@@ -70,7 +70,7 @@ UPPER_LIMIT_BLOCKS = [
         "mjd_obs": 60758.0668287,
         "rms_jy": 4.831714277465e-06,
         "rms_peeled_jy": 5.41e-04,  # sigma_emp at r_lim (S_exp, 5 sigma; 0.05" grid, was 359 uJy on the 0.25" grid); was 306 uJy (injection, SE side)
-        "s_jet_jy": 0.00283,    # ~2.8 mJy: mean of NW/SE exponential fade fits to Epochs 5-11
+        "s_jet_jy": 0.002795,   # ~2.8 mJy: mean of NW/SE fade fits (src/fit_lobe_fade.py, NW 5-12, SE 5-11); was 0.00283 (Epochs 5-11)
         "r_lim_arcsec": 1.40,   # limit radius, S_exp, 5 sigma, from S >= 5 sigma_emp(r) (simple_limits.py, 0.05" grid; 1.50 on the 0.25" grid); injection gave 1.50/1.75
         "sigma_pos_arcsec": 0.299,  # b / (2 SNR) at r_lim
         "measured": {

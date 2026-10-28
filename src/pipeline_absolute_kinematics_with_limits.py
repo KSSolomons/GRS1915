@@ -88,6 +88,13 @@ parser.add_argument(
     help="Include observational upper-limit penalty in the likelihood (default: True, use --no-include-limits to run without)",
 )
 parser.add_argument(
+    "--epoch12-north",
+    action=argparse.BooleanOptionalAction,
+    default=True,
+    help="Fit the Epoch 12 N lobe (the Epoch 12 S feature is never fitted; default: True, --no-epoch12-north "
+    "reproduces the fits before 2026-10-28)",
+)
+parser.add_argument(
     "--ul-sigma",
     type=float,
     default=0.05,
@@ -267,10 +274,10 @@ for f in files:
         if 288.7979 < c["ra_deg"] < 288.7982:
             core_data_raw.append([mjd, dx, dy, ex, ey, flux, flux_err])
         elif dy > 0:
-            if ts != 1764664923:  # Exclude Epoch 12 jet measurements
+            if ts != 1764664923 or args.epoch12_north:  # Epoch 12 N lobe: detected, fitted by default
                 n_data.append([mjd, dx, dy, ex, ey, flux, flux_err])
         else:
-            if ts != 1764664923:  # Exclude Epoch 12 jet measurements
+            if ts != 1764664923:  # Epoch 12 S feature: not a detection, never fitted
                 s_data.append([mjd, dx, dy, ex, ey, flux, flux_err])
 
 # The frame correction removes the image shifts that the earlier MAD filter rejected, so no core is filtered

@@ -20,7 +20,7 @@ Surviving fraction by estimator:
 Matched filter (template = peeled knot of 2.83 mJy; noise from 22 rotations >= 40 deg from the jet axis)
   mask within 1.5" of (3.1", PA 138):
     a_obs = 0.493 (as an S_inj-scaled knot: 1.40 mJy); noise sigma 0.160, mean -0.054
-    knot of 2.83 mJy disfavoured at 2.8 sigma; for 2.97 mJy (SE fade) 3.1 sigma; 5 sigma upper limit 3.81 mJy
+    knot of 2.83 mJy disfavoured at 2.8 sigma; of S_exp = 2.80 mJy 2.8 sigma; for 2.97 mJy (SE fade) 3.1 sigma; 5 sigma upper limit 3.81 mJy
   mask 1.5-5" from the core, within 40 deg of the SE axis:
     a_obs = 0.482 (as an S_inj-scaled knot: 1.36 mJy); noise sigma 0.125, mean -0.034
-    knot of 2.83 mJy disfavoured at 3.9 sigma; for 2.97 mJy (SE fade) 4.3 sigma; 5 sigma upper limit 3.23 mJy
+    knot of 2.83 mJy disfavoured at 3.9 sigma; of S_exp = 2.80 mJy 3.8 sigma; for 2.97 mJy (SE fade) 4.3 sigma; 5 sigma upper limit 3.23 mJy

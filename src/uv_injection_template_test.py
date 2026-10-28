@@ -15,6 +15,8 @@ significance, is uncertain by ~40 per cent.
 """
 
 import glob
+import os
+import sys
 
 import astropy.units as u
 import numpy as np
@@ -24,8 +26,12 @@ from astropy.wcs import WCS
 from scipy.ndimage import map_coordinates
 from scipy.optimize import least_squares
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from epoch_limits import UPPER_LIMIT_BLOCKS
+
 CORE = "19:15:11.5085 +10:56:43.507"  # data/peel_regions/epoch4_1742780174_peel_3as.reg
 R_INJ, PA_INJ, S_INJ = 2.8, 137.6, 2.83
+S_EXP = UPPER_LIMIT_BLOCKS[3]["s_jet_jy"] * 1e3  # expected Epoch 4 knot flux (mJy), fade fit; S_INJ is what was injected
 JET_PA = 137.6
 PIX = 0.5
 OUT = "data/peel_regions/uv_injection_ep4_template.txt"
@@ -93,7 +99,7 @@ for label, m in masks.items():
     lim5 = (a_obs - mu + 5 * sd) * S_INJ
     lines.append(f"  mask {label}:")
     lines.append(f"    a_obs = {a_obs:.3f} (as an S_inj-scaled knot: {a_obs * S_INJ:.2f} mJy); noise sigma {sd:.3f}, mean {mu:+.3f}")
-    lines.append(f"    knot of {S_INJ} mJy disfavoured at {sig:.1f} sigma; for 2.97 mJy (SE fade) {(2.97 / S_INJ + mu - a_obs) / sd:.1f} sigma;"
+    lines.append(f"    knot of {S_INJ} mJy disfavoured at {sig:.1f} sigma; of S_exp = {S_EXP:.2f} mJy {(S_EXP / S_INJ + mu - a_obs) / sd:.1f} sigma; for 2.97 mJy (SE fade) {(2.97 / S_INJ + mu - a_obs) / sd:.1f} sigma;"
                  f" 5 sigma upper limit {lim5:.2f} mJy")
 
 open(OUT, "w").write("\n".join(lines) + "\n")

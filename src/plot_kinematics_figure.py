@@ -63,7 +63,7 @@ for side, pa in (("n", pa_n), ("s", pa_s)):
                        par=dx * s + dy * c, perp=dx * c - dy * s,
                        epar=np.hypot(ex * s, ey * c), eperp=np.hypot(ex * c, ey * s))
 
-t_grid = np.linspace(60250, 61010, 400)
+t_grid = np.linspace(60250, 61035, 400)
 
 
 def band(curves):
@@ -99,7 +99,7 @@ gs = fig.add_gridspec(2, 2, width_ratios=[0.8, 1.45], wspace=0.38, hspace=0.18)
 
 # (a) sky positions
 ax = fig.add_subplot(gs[:, 0])
-norm = Normalize(60780, 60985)
+norm = Normalize(60780, 61020)  # Epochs 5-12
 cmap = plt.get_cmap("viridis")
 r_max = 6.0
 for pa in (pa_n, pa_s + 180.0):

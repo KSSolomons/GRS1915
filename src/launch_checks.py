@@ -36,6 +36,8 @@ def separation(prefix, k):
 print("1. Latest launch, T_ej <= t_obs - (D/c) sqrt(r_a r_r):")
 for i, t in enumerate(z["n_mjd"]):
     j = int(np.argmin(np.abs(z["s_mjd"] - t)))
+    if abs(z["s_mjd"][j] - t) > 1.0:  # no SE lobe in this epoch (Epoch 12)
+        continue
     r_r, r_a = separation("n", i), separation("s", j)
     d = rng.normal(D_KPC, D_ERR, N_MC)
     bound = t - np.sqrt(r_a * r_r) * RAD_PER_ARCSEC * d * LD_PER_KPC

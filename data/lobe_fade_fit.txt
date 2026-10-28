@@ -1,0 +1,18 @@
+Extrapolated lobe flux densities for Epochs 1-4
+Exponential fade S(t) = a exp(-(t - t0)/tau_fade), t0 = Epoch 1, fitted to the resolved epochs
+(NW: Epochs 5-12, SE: Epochs 5-11; Epoch 12 S feature and pre-2025 components excluded)
+
+--- NW Lobe (epochs used: MJD 60792, 60837, 60855, 60883, 60917, 60953, 60973, 61011) ---
+tau_fade = 65.2 +/- 5.4 d   (formal error; reduced chi2 = 1.16)
+Epoch 1 (MJD 60686.25): 7.87 mJy
+Epoch 2 (MJD 60708.20): 5.62 mJy
+Epoch 3 (MJD 60736.11): 3.67 mJy
+Epoch 4 (MJD 60758.07): 2.62 mJy
+
+--- SE Lobe (epochs used: MJD 60792, 60837, 60855, 60883, 60917, 60953, 60973) ---
+tau_fade = 53.1 +/- 5.4 d   (formal error; reduced chi2 = 0.98)
+Epoch 1 (MJD 60686.25): 11.48 mJy
+Epoch 2 (MJD 60708.20): 7.59 mJy
+Epoch 3 (MJD 60736.11): 4.48 mJy
+Epoch 4 (MJD 60758.07): 2.97 mJy
+

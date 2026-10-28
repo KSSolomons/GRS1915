@@ -2,18 +2,18 @@ Epoch 3-4 limit radii from the empirical noise (no injection; image plane, the p
 Detectable at r if S >= threshold x sigma_emp(r); r_lim = smallest r with this at r and every larger r in 1.00-4.00" ('>4.00' = none). sigma_emp is the same for NW and SE.
 sigma_pos = b / (2 SNR), b = sqrt(BMAJ BMIN), SNR = S / sigma_emp at r_lim.
  thr epoch S/S_exp  S_mJy  r_lim sigma_pos sigma_emp
-   5     3    1.00   4.13   2.20     0.369     0.811
-   5     3    0.50   2.06  >4.00        --        --
-   5     3    0.25   1.03  >4.00        --        --
-   3     3    1.00   4.13   1.80     0.593     1.302
-   3     3    0.50   2.06   2.45     0.621     0.682
-   3     3    0.25   1.03  >4.00        --        --
-   5     4    1.00   2.83   1.40     0.299     0.541
-   5     4    0.50   1.42   1.85     0.313     0.283
-   5     4    0.25   0.71  >4.00        --        --
-   3     4    1.00   2.83   1.35     0.367     0.664
-   3     4    0.50   1.42   1.45     0.470     0.425
-   3     4    0.25   0.71   2.25     0.522     0.236
+   5     3    1.00   4.07   2.20     0.374     0.811
+   5     3    0.50   2.04  >4.00        --        --
+   5     3    0.25   1.02  >4.00        --        --
+   3     3    1.00   4.07   1.80     0.601     1.302
+   3     3    0.50   2.04   2.50     0.610     0.661
+   3     3    0.25   1.02  >4.00        --        --
+   5     4    1.00   2.80   1.40     0.303     0.541
+   5     4    0.50   1.40   1.90     0.308     0.275
+   5     4    0.25   0.70  >4.00        --        --
+   3     4    1.00   2.80   1.35     0.372     0.664
+   3     4    0.50   1.40   1.45     0.476     0.425
+   3     4    0.25   0.70   2.35     0.514     0.229
 
 sigma_emp (mJy/beam) by radius:
     r      ep3      ep4

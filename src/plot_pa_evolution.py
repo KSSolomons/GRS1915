@@ -39,7 +39,7 @@ fit_pa = {"n": lin[:, 3] % 360, "s": lin[:, 4] % 360}
 axis_pa = np.median(0.5 * (fit_pa["n"] + fit_pa["s"]))
 
 fig, ax = plt.subplots(figsize=(3.6, 2.8))
-t_lo, t_hi = 60770, 60995
+t_lo, t_hi = 60770, 61030  # Epoch 12 (NW only) at MJD 61011
 for side, ls in (("n", "-"), ("s", "--")):
     q16, q50, q84 = np.percentile(fit_pa[side], [16, 50, 84])
     ax.axhspan(q16, q84, color=LINEAR, alpha=0.2, lw=0)
@@ -66,7 +66,7 @@ for side, marker, mfc, dt in (("n", "^", "black", -1.5), ("s", "v", "white", 1.5
 
 ax.set_xlim(t_lo, t_hi)
 ax.set_xticks([60800, 60850, 60900, 60950])
-ax.set_ylim(axis_pa - 22, axis_pa + 22)
+ax.set_ylim(axis_pa - 30, axis_pa + 32)
 ax.set_xlabel("MJD", fontsize=8)
 ax.set_ylabel(r"PA ($^\circ$ E of N)", fontsize=8)
 # The same angle read for the SE lobe, which points the opposite way

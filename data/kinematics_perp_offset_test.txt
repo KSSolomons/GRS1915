@@ -1,19 +1,19 @@
-Perpendicular-offset test, linear model, no limits, N_data = 52
+Perpendicular-offset test, linear model, no limits, N_data = 54
 A: axis through the core (paper Model 1); B: common offset d; C: separate d_n, d_s.
 variant   k      lnL      BIC  dBIC(vs A)   d_n (")  d_s (")  theta_scatter  T_ej   PA_n   PA_s
-A         8    58.77   -85.92        0.00     0.000    0.000           4.27  60372.3   318.3   317.5
-B         9    59.00   -82.44        3.48     0.267    0.267           4.44  60364.4   313.2   321.7
-C        10    60.31   -81.11        4.82    -0.339    1.578           3.38  60461.6   324.9   343.2
+A         8    56.19   -80.47        0.00     0.000    0.000           4.35  60375.0   318.8   317.5
+B         9    56.37   -76.85        3.62     0.237    0.237           4.51  60366.6   314.3   321.3
+C        10    57.83   -75.78        4.69    -0.425    1.633           3.34  60470.6   326.9   344.2
 
-MCMC, variant B (20000 steps x 128 walkers, 20% burn-in; max autocorr 421 steps): median [16th, 84th]
-  T_ej               60361.5581  [60262.1619, 60432.8059]
-  mu_r (mas/d)           5.3417  [    4.4400,     6.2465]
-  mu_a (mas/d)           7.0134  [    5.8264,     8.2085]
-  PA_n (E of N)        312.2142  [  304.0460,   320.1127]
-  PA_s+180 (E of N)    322.6472  [  315.9887,   329.5036]
-  theta_scatter          5.5850  [    4.1458,     7.5868]
-  x_c                   -0.1977  [   -0.2039,    -0.1916]
-  y_c                   -0.3590  [   -0.3636,    -0.3544]
-  d (arcsec)             0.3249  [   -0.0762,     0.7289]
-  beta cos theta         0.1354  [    0.1246,     0.1462]
-  P(d <= 0) = 2.10e-01
+MCMC, variant B (20000 steps x 128 walkers, 20% burn-in; max autocorr 432 steps): median [16th, 84th]
+  T_ej               60363.4601  [60267.1206, 60433.2166]
+  mu_r (mas/d)           5.3652  [    4.4825,     6.2547]
+  mu_a (mas/d)           7.0442  [    5.8736,     8.2227]
+  PA_n (E of N)        313.3212  [  305.2729,   321.2551]
+  PA_s+180 (E of N)    322.2003  [  315.4159,   329.1109]
+  theta_scatter          5.7050  [    4.2461,     7.7367]
+  x_c                   -0.1976  [   -0.2038,    -0.1913]
+  y_c                   -0.3590  [   -0.3637,    -0.3544]
+  d (arcsec)             0.2967  [   -0.1071,     0.7054]
+  beta cos theta         0.1354  [    0.1244,     0.1463]
+  P(d <= 0) = 2.33e-01

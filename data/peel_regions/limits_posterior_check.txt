@@ -3,21 +3,21 @@ r_lim = radius beyond which a knot of flux S_exp would be detected at 5 sigma_em
 pass = fraction of posterior samples whose predicted knot lies inside r_lim (consistent with the non-detection).
 Physical-model samples at D = 9.4 kpc; ballistic and app_decel = apparent-motion Models 1 and 5 (distance-free).
 model        epoch side  r_lim     pred_r [16, 50, 84]   pass
-ballistic        3   NW   2.20   [ 1.90,  2.01,  2.12]    0.957
-ballistic        3   SE   2.20   [ 2.50,  2.64,  2.79]    0.002
-ballistic        4   NW   1.40   [ 2.03,  2.13,  2.22]    0.000
-ballistic        4   SE   1.40   [ 2.68,  2.80,  2.92]    0.000
+ballistic        3   NW   2.20   [ 1.88,  1.99,  2.10]    0.970
+ballistic        3   SE   2.20   [ 2.49,  2.63,  2.77]    0.002
+ballistic        4   NW   1.40   [ 2.02,  2.11,  2.21]    0.000
+ballistic        4   SE   1.40   [ 2.67,  2.79,  2.91]    0.000
 ballistic                      all four inside r_lim    0.000
 
-app_decel        3   NW   2.20   [ 1.77,  1.94,  2.09]    0.970
-app_decel        3   SE   2.20   [ 2.48,  2.66,  2.83]    0.010
-app_decel        4   NW   1.40   [ 1.93,  2.08,  2.20]    0.000
-app_decel        4   SE   1.40   [ 2.69,  2.83,  2.96]    0.000
+app_decel        3   NW   2.20   [ 1.74,  1.92,  2.08]    0.967
+app_decel        3   SE   2.20   [ 2.49,  2.65,  2.83]    0.007
+app_decel        4   NW   1.40   [ 1.92,  2.06,  2.19]    0.000
+app_decel        4   SE   1.40   [ 2.69,  2.83,  2.97]    0.000
 app_decel                      all four inside r_lim    0.000
 
-decel_sym        3   NW   2.20   [ 1.56,  1.67,  1.80]    1.000
-decel_sym        3   SE   2.20   [ 2.34,  2.54,  2.75]    0.034
-decel_sym        4   NW   1.40   [ 1.78,  1.87,  1.98]    0.000
-decel_sym        4   SE   1.40   [ 2.60,  2.76,  2.93]    0.000
+decel_sym        3   NW   2.20   [ 1.55,  1.67,  1.80]    1.000
+decel_sym        3   SE   2.20   [ 2.33,  2.54,  2.75]    0.041
+decel_sym        4   NW   1.40   [ 1.77,  1.87,  1.98]    0.000
+decel_sym        4   SE   1.40   [ 2.60,  2.76,  2.92]    0.000
 decel_sym                      all four inside r_lim    0.000
 

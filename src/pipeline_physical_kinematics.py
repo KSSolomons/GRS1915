@@ -82,6 +82,13 @@ parser.add_argument(
     help="Also fit every model without the upper-limit penalty (default: True)",
 )
 parser.add_argument(
+    "--epoch12-north",
+    action=argparse.BooleanOptionalAction,
+    default=True,
+    help="Fit the Epoch 12 N lobe (the Epoch 12 S feature is never fitted; default: True, --no-epoch12-north "
+    "reproduces the fits before 2026-10-28)",
+)
+parser.add_argument(
     "--ul-mjd",
     type=float,
     nargs="+",
@@ -146,7 +153,7 @@ rng = np.random.default_rng(args.seed)
 
 C_LD_PER_DAY = 1.0  # work in light-days, so c = 1
 AU_PER_LD = 173.144633  # astronomical units per light-day
-EPOCH12_TS = 1764664923  # Epoch 12 jet features are unreliable (likely artefacts)
+EPOCH12_TS = 1764664923  # Epoch 12: N lobe detected (fitted unless --no-epoch12-north), S feature not a detection
 
 LOG_GB0_RANGE = (-1.5, 2.0)  # prior on log10(Gamma_0 beta_0): beta_0 from 0.03 to 0.99995
 TAU_RANGE = (5.0, 5000.0)  # prior on the deceleration timescales (days)
@@ -220,7 +227,7 @@ for f in files:
         row = [mjd, *corrected]
         if 288.7979 < c["ra_deg"] < 288.7982:
             core_data_raw.append(row)
-        elif mjd > EJECTION_CAMPAIGN_START and ts != EPOCH12_TS:
+        elif mjd > EJECTION_CAMPAIGN_START and (ts != EPOCH12_TS or (dy > 0 and args.epoch12_north)):
             (n_data if dy > 0 else s_data).append(row)
 
 if no_offset:
@@ -580,7 +587,7 @@ lines = []
 lines.append("=" * 130)
 lines.append("PHYSICAL LIGHT-TRAVEL-TIME KINEMATICS: MODEL COMPARISON GRID".center(130))
 lines.append("=" * 130)
-lines.append(f"N_data = {num_obs_total} ({len(core_data)} core, {len(n_data)} N, {len(s_data)} S epochs; Epoch 12 jets excluded)")
+lines.append(f"N_data = {num_obs_total} ({len(core_data)} core, {len(n_data)} N, {len(s_data)} S epochs; Epoch 12 S excluded{'' if args.epoch12_north else ', Epoch 12 N excluded'})")
 lines.append("BIC = k ln N - 2 ln L at the maximum likelihood; dBIC relative to the best model in each row.")
 lines.append("UL penalty = contribution of the beam upper-limit term to ln L at the best fit (0 = limits satisfied).")
 lines.append(
