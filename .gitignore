@@ -40,3 +40,6 @@ docs/build/
 
 # Paper draft, notes and plans - kept local only (branch private-full), never pushed
 docs/
+
+# Pipeline outputs (regenerable, large) - kept local only
+*.npz
