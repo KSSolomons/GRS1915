@@ -37,3 +37,6 @@ masks/
 # Local backups and LaTeX build outputs
 scratch/
 docs/build/
+
+# Paper draft, notes and plans - kept local only (branch private-full), never pushed
+docs/
